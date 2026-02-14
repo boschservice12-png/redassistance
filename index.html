@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B0C10">
+<title>RedAssistance — Fleet Management</title>
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;RedAssistance&quot;,&quot;short_name&quot;:&quot;RedAss&quot;,&quot;start_url&quot;:&quot;/&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%230B0C10&quot;,&quot;theme_color&quot;:&quot;%23E53935&quot;}">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0B0C10;--surface:#13141B;--card:#1A1C25;--border:#252833;
+--red:#E53935;--red-g:#FF6B6B;--green:#00D4AA;--purple:#7C6AFF;
+--yellow:#FFB020;--pink:#FF6B9D;--text:#E8ECF4;--dim:#8890A0;--muted:#555D70;
+}
+body{font-family:-apple-system,'SF Pro Display','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden}
+.hide{display:none!important}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+input,select{font-family:inherit;outline:none}
+
+/* Login */
+.login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.login-logo{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--red),var(--red-g));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;margin-bottom:16px}
+.login h1{font-size:28px;font-weight:900;margin-bottom:4px}
+.login h1 span{color:var(--red)}
+.login p{font-size:12px;color:var(--muted);margin-bottom:32px}
+.pin-input{width:200px;padding:16px;border-radius:12px;border:2px solid var(--border);background:var(--card);color:var(--text);font-size:24px;text-align:center;letter-spacing:12px;margin-bottom:16px}
+.pin-input:focus{border-color:var(--red)}
+.login-btn{width:200px;padding:14px;border-radius:12px;background:linear-gradient(135deg,var(--red),var(--red-g));color:#fff;font-size:14px;font-weight:700;margin-bottom:12px}
+.login-hint{font-size:10px;color:var(--muted);margin-top:8px}
+.login-error{color:var(--red);font-size:12px;margin-top:8px;min-height:18px}
+
+/* Header */
+.header{background:linear-gradient(135deg,var(--surface),#1A0A0A);padding:14px 16px 12px;border-bottom:1px solid var(--border)}
+.header-top{display:flex;justify-content:space-between;align-items:center}
+.header-brand{display:flex;align-items:center;gap:10px}
+.header-icon{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--red),var(--red-g));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff}
+.header-title{font-size:16px;font-weight:800;letter-spacing:-0.3px}
+.header-title span{color:var(--red)}
+.header-sub{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.logout-btn{padding:6px 12px;border-radius:6px;background:var(--card);border:1px solid var(--border);color:var(--dim);font-size:10px;font-weight:600}
+.kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:12px}
+.kpi-mini{background:var(--card);border-radius:10px;padding:10px 6px;text-align:center;border-bottom:2px solid var(--red)}
+.kpi-mini .val{font-size:17px;font-weight:800}
+.kpi-mini .lbl{font-size:8px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.worker-header{margin-top:12px;background:rgba(0,212,170,.07);border:1px solid rgba(0,212,170,.2);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+
+/* Content */
+.content{padding:0 12px 80px}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;padding:0 4px}
+.section-title .t{font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.8px;text-transform:uppercase}
+.section-title .r{font-size:10px;color:var(--muted)}
+
+/* Date filter */
+.date-filter{display:flex;gap:8px;align-items:center;margin:12px 0;padding:0 4px}
+.date-filter input{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:12px;flex:1}
+.period-tabs{display:flex;gap:3px;background:var(--card);border-radius:8px;padding:3px}
+.period-tab{padding:7px 12px;border-radius:6px;background:transparent;color:var(--muted);font-size:11px;font-weight:700}
+.period-tab.active{background:var(--red);color:#fff}
+
+/* Job cards */
+.job-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:8px;transition:all .2s}
+.job-card.open{background:var(--card);border-color:rgba(229,57,53,.3)}
+.job-top{display:flex;justify-content:space-between;align-items:flex-start}
+.job-title{font-size:14px;font-weight:700}
+.job-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
+.badge-assigned{background:rgba(255,176,32,.1);color:var(--yellow)}
+.badge-progress{background:rgba(0,212,170,.1);color:var(--green)}
+.badge-done{background:rgba(76,175,80,.1);color:#4CAF50}
+.badge-paid{background:rgba(124,106,255,.1);color:var(--purple)}
+.job-metrics{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:10px}
+.job-metric{text-align:center}
+.job-metric .v{font-size:14px;font-weight:800}
+.job-metric .l{font-size:8px;color:var(--muted);margin-top:1px}
+.eff-bar{height:4px;border-radius:2px;background:var(--card);overflow:hidden;margin-top:8px}
+.eff-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.action-btn{width:100%;margin-top:12px;padding:12px;border-radius:10px;color:#fff;font-size:13px;font-weight:800}
+.btn-start{background:linear-gradient(135deg,var(--green),#00E6B8)}
+.btn-done{background:linear-gradient(135deg,#4CAF50,#66BB6A)}
+.btn-add{width:100%;padding:14px;border-radius:12px;border:1px dashed rgba(229,57,53,.3);background:rgba(229,57,53,.05);color:var(--red);font-size:13px;font-weight:700;margin-top:8px}
+
+/* Charts */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+.chart-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;text-align:center;margin-bottom:10px}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Gauge */
+.gauge-wrap{text-align:center;padding:10px 0}
+.gauge-value{font-size:36px;font-weight:900;margin-top:-10px}
+
+/* Team cards */
+.team-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px}
+.team-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.team-avatar{width:40px;height:40px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--dim);flex-shrink:0}
+.team-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.team-stat{background:var(--card);border-radius:8px;padding:8px;text-align:center}
+.team-stat .v{font-size:13px;font-weight:700}
+.team-stat .l{font-size:8px;color:var(--muted)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal h3 button{background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;border-radius:6px;font-size:12px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:10px;color:var(--dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-actions button{flex:1;padding:12px;border-radius:10px;font-size:13px;font-weight:700}
+.btn-cancel{background:var(--card);border:1px solid var(--border);color:var(--dim)}
+.btn-save{background:linear-gradient(135deg,var(--red),var(--red-g));color:#fff}
+
+/* Nav */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--surface);border-top:1px solid var(--border);display:grid;padding:6px 0 14px;z-index:100}
+.nav-3{grid-template-columns:1fr 1fr 1fr}
+.nav-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.nav button{background:none;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:9px;font-weight:600;padding:4px 0}
+.nav button.active{color:var(--red)}
+.nav button .icon{font-size:18px}
+.nav button .dot{width:4px;height:4px;border-radius:2px;background:var(--red);margin-top:-1px}
+
+/* Loading */
+.loading{display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--dim)}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;margin-right:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;padding:10px 20px;border-radius:10px;font-size:12px;font-weight:700;z-index:2000;animation:fadeIn .3s}
+.toast-error{background:var(--red);color:#fff}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ═══ SUPABASE CONNECTION ═══
+const SUPABASE_URL = 'https://pxypbbvqinbwesfikkdb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4eXBiYnZxaW5id2VzZmlra2RiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMjMwNzIsImV4cCI6MjA4NjU5OTA3Mn0.WZBdbr-YBxLq1ALnHY2weFQ7j2JhUUj6hOUGkuuErnQ';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ═══ STATE ═══
+let state = {
+  screen: 'login', // login, dash, jobs, team, charts
+  role: null, // boss, worker
+  user: null, // employee object for workers
+  employees: [],
+  jobs: [],
+  selectedDate: new Date().toISOString().split('T')[0],
+  period: 'daily',
+  selectedJob: null,
+  showModal: null, // null, 'addJob', 'editJob', 'addEmployee'
+  editJobData: null,
+  loading: false,
+  toast: null,
+};
+
+function setState(updates) {
+  Object.assign(state, updates);
+  render();
+}
+
+// ═══ DATA FUNCTIONS ═══
+async function loadEmployees() {
+  const { data } = await sb.from('employees').select('*').eq('is_active', true).order('name');
+  return data || [];
+}
+
+async function loadJobs(dateStr) {
+  let query = sb.from('jobs').select('*, employees(name, role, hourly_rate)').order('created_at', { ascending: false });
+  
+  if (state.period === 'daily') {
+    query = query.eq('date', dateStr);
+  } else if (state.period === 'weekly') {
+    const d = new Date(dateStr);
+    const day = d.getDay() || 7;
+    const mon = new Date(d);
+    mon.setDate(d.getDate() - day + 1);
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    query = query.gte('date', mon.toISOString().split('T')[0]).lte('date', sun.toISOString().split('T')[0]);
+  } else if (state.period === 'monthly') {
+    const ym = dateStr.slice(0, 7);
+    query = query.gte('date', ym + '-01').lte('date', ym + '-31');
+  }
+  
+  const { data } = await query;
+  return data || [];
+}
+
+async function refreshData() {
+  setState({ loading: true });
+  const [employees, jobs] = await Promise.all([loadEmployees(), loadJobs(state.selectedDate)]);
+  setState({ employees, jobs, loading: false });
+}
+
+async function createJob(job) {
+  const { error } = await sb.from('jobs').insert(job);
+  if (error) { showToast('Hiba: ' + error.message, true); return; }
+  showToast('Munka létrehozva! ✅');
+  setState({ showModal: null });
+  await refreshData();
+}
+
+async function updateJob(id, updates) {
+  const { error } = await sb.from('jobs').update(updates).eq('id', id);
+  if (error) { showToast('Hiba: ' + error.message, true); return; }
+  showToast('Munka frissítve! ✅');
+  setState({ showModal: null, editJobData: null });
+  await refreshData();
+}
+
+async function updateJobStatus(id, newStatus, actualMin) {
+  const updates = { status: newStatus };
+  if (actualMin !== undefined) updates.actual_min = actualMin;
+  await updateJob(id, updates);
+}
+
+async function deleteJob(id) {
+  if (!confirm('Biztosan törlöd ezt a munkát?')) return;
+  const { error } = await sb.from('jobs').delete().eq('id', id);
+  if (error) { showToast('Hiba: ' + error.message, true); return; }
+  showToast('Munka törölve');
+  await refreshData();
+}
+
+async function createEmployee(emp) {
+  const { error } = await sb.from('employees').insert(emp);
+  if (error) { showToast('Hiba: ' + error.message, true); return; }
+  showToast('Alkalmazott hozzáadva! ✅');
+  setState({ showModal: null });
+  await refreshData();
+}
+
+// ═══ AUTH ═══
+async function handleLogin(pin) {
+  const settings = await sb.from('settings').select('boss_pin').single();
+  if (settings.data && settings.data.boss_pin === pin) {
+    setState({ screen: 'dash', role: 'boss', user: null });
+    await refreshData();
+    return;
+  }
+  const { data } = await sb.from('employees').select('*').eq('pin_code', pin).eq('is_active', true).single();
+  if (data) {
+    setState({ screen: 'dash', role: 'worker', user: data });
+    await refreshData();
+    return;
+  }
+  showToast('Hibás PIN kód!', true);
+}
+
+function handleLogout() {
+  setState({ screen: 'login', role: null, user: null, employees: [], jobs: [] });
+}
+
+// ═══ HELPERS ═══
+function showToast(msg, isError) {
+  setState({ toast: { msg, isError } });
+  setTimeout(() => setState({ toast: null }), 2500);
+}
+
+function fmt(min) { 
+  if (!min) return '—'; 
+  const h = Math.floor(min/60); 
+  const m = min % 60; 
+  return h > 0 ? h + 'h' + (m > 0 ? ' ' + m + 'm' : '') : m + 'm'; 
+}
+
+function effColor(v) { return v >= 100 ? 'var(--green)' : v >= 85 ? 'var(--yellow)' : 'var(--red)'; }
+function statusBadge(s) {
+  const map = { assigned:['Kiosztva','badge-assigned','📋'], progress:['Folyamatban','badge-progress','🔧'], done:['Kész','badge-done','✅'], paid:['Kifizetve','badge-paid','💰'] };
+  const m = map[s] || map.assigned;
+  return `<span class="badge ${m[1]}">${m[2]} ${m[0]}</span>`;
+}
+
+function getStats() {
+  const jobs = state.role === 'worker' ? state.jobs.filter(j => j.employee_id === state.user?.id) : state.jobs;
+  const totalBooked = jobs.reduce((s,j) => s + (j.booked_min||0), 0);
+  const totalActual = jobs.reduce((s,j) => s + (j.actual_min||0), 0);
+  const totalPaid = jobs.reduce((s,j) => s + (j.paid_min||0), 0);
+  const doneCount = jobs.filter(j => j.status==='done'||j.status==='paid').length;
+  const eff = totalActual > 0 ? Math.round((totalBooked/totalActual)*100) : 0;
+  const revenue = jobs.reduce((s,j) => s + ((j.paid_min||0)/60) * (j.employees?.hourly_rate||0), 0);
+  return { jobs, totalBooked, totalActual, totalPaid, total: jobs.length, doneCount, eff, revenue };
+}
+
+function getEmpStats() {
+  return state.employees.map(emp => {
+    const jobs = state.jobs.filter(j => j.employee_id === emp.id);
+    const booked = jobs.reduce((s,j) => s + (j.booked_min||0), 0);
+    const actual = jobs.reduce((s,j) => s + (j.actual_min||0), 0);
+    const paid = jobs.reduce((s,j) => s + (j.paid_min||0), 0);
+    const eff = actual > 0 ? Math.round((booked/actual)*100) : 0;
+    const revenue = (paid/60) * emp.hourly_rate;
+    return { ...emp, jobCount: jobs.length, booked, actual, paid, eff, revenue };
+  }).sort((a,b) => b.eff - a.eff);
+}
+
+// ═══ RENDER ═══
+function render() {
+  const app = document.getElementById('app');
+  
+  if (state.toast) {
+    let toast = document.getElementById('toast');
+    if (!toast) { toast = document.createElement('div'); toast.id = 'toast'; document.body.appendChild(toast); }
+    toast.className = 'toast' + (state.toast.isError ? ' toast-error' : '');
+    toast.textContent = state.toast.msg;
+    toast.classList.remove('hide');
+  } else {
+    const toast = document.getElementById('toast');
+    if (toast) toast.classList.add('hide');
+  }
+  
+  if (state.screen === 'login') { app.innerHTML = renderLogin(); return; }
+  
+  const stats = getStats();
+  let content = '';
+  if (state.screen === 'dash') content = state.role === 'boss' ? renderBossDash(stats) : renderWorkerDash(stats);
+  else if (state.screen === 'jobs') content = renderJobs(stats);
+  else if (state.screen === 'team') content = renderTeam();
+  else if (state.screen === 'charts') content = renderCharts(stats);
+  
+  app.innerHTML = renderHeader(stats) + `<div class="content">${content}</div>` + renderNav() + renderModal();
+  
+  if (state.screen === 'charts' || state.screen === 'dash') setTimeout(initCharts, 50);
+}
+
+// ═══ RENDER: LOGIN ═══
+function renderLogin() {
+  return `
+    <div class="login">
+      <div class="login-logo">R</div>
+      <h1><span>Red</span>Assistance</h1>
+      <p>Fleet Management System</p>
+      <input class="pin-input" type="password" maxlength="4" placeholder="• • • •" id="pinInput" 
+        onkeydown="if(event.key==='Enter')handleLogin(this.value)" autofocus>
+      <button class="login-btn" onclick="handleLogin(document.getElementById('pinInput').value)">Belépés</button>
+      <div class="login-hint">Főnök PIN: 1234 · Szerelő: saját PIN</div>
+    </div>`;
+}
+
+// ═══ RENDER: HEADER ═══
+function renderHeader(stats) {
+  let kpis = '';
+  if (state.role === 'boss') {
+    kpis = `<div class="kpi-row">
+      <div class="kpi-mini"><div class="val" style="color:var(--red)">${stats.doneCount}/${stats.total}</div><div class="lbl">Munkák</div></div>
+      <div class="kpi-mini" style="border-color:${effColor(stats.eff)}"><div class="val" style="color:${effColor(stats.eff)}">${stats.eff}%</div><div class="lbl">Hatékonyság</div></div>
+      <div class="kpi-mini" style="border-color:var(--purple)"><div class="val" style="color:var(--purple)">${(stats.totalActual/60).toFixed(1)}</div><div class="lbl">Órák</div></div>
+      <div class="kpi-mini" style="border-color:var(--pink)"><div class="val" style="color:var(--pink)">${(stats.revenue/1000).toFixed(0)}K</div><div class="lbl">Bevétel</div></div>
+    </div>`;
+  } else {
+    const done = stats.doneCount, total = stats.total;
+    kpis = `<div class="worker-header">
+      <div><div style="font-size:15px;font-weight:800">👋 Szia, ${state.user?.name || ''}</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:2px">Ma ${total} munkád · ${done} kész</div></div>
+      <div style="background:var(--green);color:#000;padding:6px 14px;border-radius:20px;font-size:18px;font-weight:900">${done}/${total}</div>
+    </div>`;
+  }
+  return `
+    <div class="header">
+      <div class="header-top">
+        <div class="header-brand">
+          <div class="header-icon">R</div>
+          <div><div class="header-title"><span>Red</span>Assistance</div><div class="header-sub">Fleet Management</div></div>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">Kilépés</button>
+      </div>
+      ${kpis}
+    </div>`;
+}
+
+// ═══ RENDER: BOSS DASHBOARD ═══
+function renderBossDash(stats) {
+  const empStats = getEmpStats().slice(0, 5);
+  return `
+    <div class="date-filter">
+      <input type="date" value="${state.selectedDate}" onchange="setState({selectedDate:this.value});refreshData()">
+      <div class="period-tabs">
+        ${['daily','weekly','monthly'].map(p => 
+          `<button class="period-tab ${state.period===p?'active':''}" onclick="setState({period:'${p}'});refreshData()">${p==='daily'?'Napi':p==='weekly'?'Heti':'Havi'}</button>`
+        ).join('')}
+      </div>
+    </div>
+    <div class="chart-card gauge-wrap">
+      <div class="chart-title">Műhely Hatékonyság</div>
+      <canvas id="gaugeChart" height="100"></canvas>
+      <div class="gauge-value" style="color:${effColor(stats.eff)}">${stats.eff}%</div>
+      <div style="display:flex;justify-content:center;gap:20px;font-size:11px;color:var(--dim)">
+        <span>Lefoglalt: <strong style="color:var(--purple)">${(stats.totalBooked/60).toFixed(1)}h</strong></span>
+        <span>Tényleges: <strong style="color:var(--yellow)">${(stats.totalActual/60).toFixed(1)}h</strong></span>
+        <span>Kifizetett: <strong style="color:var(--green)">${(stats.totalPaid/60).toFixed(1)}h</strong></span>
+      </div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card"><div class="chart-title">Státusz eloszlás</div><canvas id="statusPie" height="160"></canvas></div>
+      <div class="chart-card"><div class="chart-title">Top 5 hatékonyság</div><canvas id="empBar" height="160"></canvas></div>
+    </div>
+    <div class="section-title"><span class="t">Mai munkák</span><span class="r">${stats.total} db</span></div>
+    ${stats.jobs.slice(0, 5).map(j => renderJobCard(j)).join('')}
+    ${stats.total > 5 ? `<button class="btn-add" onclick="setState({screen:'jobs'})" style="border-style:solid;border-color:var(--border)">Összes munka megtekintése (${stats.total}) →</button>` : ''}
+    <button class="btn-add" onclick="setState({showModal:'addJob'})">+ Új munka kiosztása</button>`;
+}
+
+// ═══ RENDER: WORKER DASHBOARD ═══
+function renderWorkerDash(stats) {
+  return `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:14px 0">
+      <div class="chart-card" style="text-align:center;padding:12px"><div style="font-size:22px;font-weight:900;color:${effColor(stats.eff)}">${stats.eff}%</div><div style="font-size:9px;color:var(--muted)">HATÉKONYSÁG</div></div>
+      <div class="chart-card" style="text-align:center;padding:12px"><div style="font-size:22px;font-weight:900;color:var(--purple)">${(stats.totalBooked/60).toFixed(1)}h</div><div style="font-size:9px;color:var(--muted)">LEFOGLALT</div></div>
+      <div class="chart-card" style="text-align:center;padding:12px"><div style="font-size:22px;font-weight:900;color:var(--yellow)">${(stats.totalActual/60).toFixed(1)}h</div><div style="font-size:9px;color:var(--muted)">TÉNYLEGES</div></div>
+    </div>
+    <div class="section-title"><span class="t">Feladataim</span><span class="r">${stats.doneCount}/${stats.total} kész</span></div>
+    ${stats.jobs.map(j => renderJobCard(j)).join('')}
+    ${stats.jobs.length === 0 ? '<div style="text-align:center;padding:40px;color:var(--muted)">📋 Ma nincs munkád kiosztva</div>' : ''}`;
+}
+
+// ═══ RENDER: JOB CARD ═══
+function renderJobCard(j) {
+  const eff = j.actual_min > 0 ? Math.round((j.booked_min/j.actual_min)*100) : 0;
+  const isOpen = state.selectedJob === j.id;
+  const empName = j.employees?.name || '';
+  
+  let actionBtn = '';
+  if (isOpen && state.role === 'worker') {
+    if (j.status === 'assigned') actionBtn = `<button class="action-btn btn-start" onclick="event.stopPropagation();updateJobStatus('${j.id}','progress')">▶ ELKEZDTEM</button>`;
+    else if (j.status === 'progress') actionBtn = `<button class="action-btn btn-done" onclick="event.stopPropagation();promptActualTime('${j.id}',${j.booked_min})">✅ KÉSZ VAGYOK</button>`;
+  }
+  
+  let bossActions = '';
+  if (isOpen && state.role === 'boss') {
+    bossActions = `<div style="display:flex;gap:8px;margin-top:12px">
+      <button style="flex:1;padding:10px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--dim);font-size:11px;font-weight:600" onclick="event.stopPropagation();openEditJob('${j.id}')">✏️ Szerkesztés</button>
+      <button style="flex:1;padding:10px;border-radius:8px;background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.2);color:var(--red);font-size:11px;font-weight:600" onclick="event.stopPropagation();deleteJob('${j.id}')">🗑 Törlés</button>
+    </div>`;
+  }
+  
+  return `
+    <div class="job-card ${isOpen?'open':''}" onclick="setState({selectedJob:state.selectedJob==='${j.id}'?null:'${j.id}'})">
+      <div class="job-top">
+        <div style="flex:1"><div class="job-title">${j.title}</div>
+        <div class="job-meta">${j.plate||''} ${state.role==='boss'?'· '+empName:''}</div></div>
+        ${statusBadge(j.status)}
+      </div>
+      <div class="job-metrics">
+        <div class="job-metric"><div class="v" style="color:var(--purple)">${j.booked_min}p</div><div class="l">Lefoglalt</div></div>
+        <div class="job-metric"><div class="v" style="color:var(--yellow)">${j.actual_min||'—'}p</div><div class="l">Tényleges</div></div>
+        <div class="job-metric"><div class="v" style="color:var(--green)">${j.paid_min||'—'}p</div><div class="l">Kifizetett</div></div>
+        <div class="job-metric"><div class="v" style="color:${eff>0?effColor(eff):'var(--muted)'}">${eff>0?eff+'%':'—'}</div><div class="l">Hat.%</div></div>
+      </div>
+      ${eff > 0 ? `<div class="eff-bar"><div class="eff-fill" style="width:${Math.min(eff,140)/1.4}%;background:${effColor(eff)}"></div></div>` : ''}
+      ${actionBtn}${bossActions}
+    </div>`;
+}
+
+function promptActualTime(jobId, bookedMin) {
+  const actual = prompt('Tényleges idő percben:', bookedMin);
+  if (actual !== null && !isNaN(actual)) {
+    updateJobStatus(jobId, 'done', parseInt(actual));
+  }
+}
+
+function openEditJob(jobId) {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (job) setState({ showModal: 'editJob', editJobData: job });
+}
+
+// ═══ RENDER: JOBS ═══
+function renderJobs(stats) {
+  return `
+    <div class="date-filter">
+      <input type="date" value="${state.selectedDate}" onchange="setState({selectedDate:this.value});refreshData()">
+      <div class="period-tabs">
+        ${['daily','weekly','monthly'].map(p => 
+          `<button class="period-tab ${state.period===p?'active':''}" onclick="setState({period:'${p}'});refreshData()">${p==='daily'?'Napi':p==='weekly'?'Heti':'Havi'}</button>`
+        ).join('')}
+      </div>
+    </div>
+    <div class="section-title"><span class="t">Összes munka</span><span class="r">${stats.total} db</span></div>
+    ${state.loading ? '<div class="loading"><div class="spinner"></div>Betöltés...</div>' : ''}
+    ${stats.jobs.map(j => renderJobCard(j)).join('')}
+    ${!state.loading && stats.jobs.length === 0 ? '<div style="text-align:center;padding:40px;color:var(--muted)">📋 Nincs munka erre az időszakra</div>' : ''}
+    ${state.role === 'boss' ? '<button class="btn-add" onclick="setState({showModal:\'addJob\'})">+ Új munka kiosztása</button>' : ''}`;
+}
+
+// ═══ RENDER: TEAM ═══
+function renderTeam() {
+  const empStats = getEmpStats();
+  return `
+    <div class="section-title"><span class="t">Csapat</span><span class="r">${empStats.length} fő</span></div>
+    <div class="chart-card"><div class="chart-title">Hatékonyság összehasonlítás</div><canvas id="teamChart" height="200"></canvas></div>
+    ${empStats.map(e => `
+      <div class="team-card">
+        <div class="team-top">
+          <div class="team-avatar">${e.name.split(' ').map(n=>n[0]).join('')}</div>
+          <div style="flex:1"><div style="font-size:14px;font-weight:700">${e.name}</div><div style="font-size:10px;color:var(--muted)">${e.role} · ${e.jobCount} munka</div></div>
+          <div style="font-size:18px;font-weight:900;color:${e.eff>0?effColor(e.eff):'var(--muted)'}">${e.eff||'—'}%</div>
+        </div>
+        <div class="team-stats">
+          <div class="team-stat"><div class="v" style="color:var(--purple)">${(e.booked/60).toFixed(1)}h</div><div class="l">Lefoglalt</div></div>
+          <div class="team-stat"><div class="v" style="color:var(--yellow)">${(e.actual/60).toFixed(1)}h</div><div class="l">Tényleges</div></div>
+          <div class="team-stat"><div class="v" style="color:var(--green)">${Math.round(e.revenue).toLocaleString()}</div><div class="l">Bevétel</div></div>
+        </div>
+      </div>`).join('')}
+    ${state.role === 'boss' ? '<button class="btn-add" onclick="setState({showModal:\'addEmployee\'})">+ Új alkalmazott</button>' : ''}`;
+}
+
+// ═══ RENDER: CHARTS ═══
+function renderCharts(stats) {
+  const empStats = getEmpStats();
+  return `
+    <div class="section-title"><span class="t">Grafikonok</span></div>
+    <div class="chart-card"><div class="chart-title">Alkalmazottankénti teljesítmény (óra)</div><canvas id="perfChart" height="220"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Bevétel megoszlás</div><canvas id="revPie" height="220"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Hatékonysági ranking</div><canvas id="effRank" height="220"></canvas></div>`;
+}
+
+// ═══ RENDER: NAV ═══
+function renderNav() {
+  const items = state.role === 'boss' 
+    ? [['dash','📊','Dashboard'],['jobs','📋','Munkák'],['team','👥','Csapat'],['charts','📈','Grafikonok']]
+    : [['dash','📊','Áttekintés'],['jobs','📋','Munkáim']];
+  const cls = state.role === 'boss' ? 'nav-4' : 'nav-3';
+  return `<div class="nav ${cls}">${items.map(([s,icon,label]) => 
+    `<button class="${state.screen===s?'active':''}" onclick="setState({screen:'${s}'})">
+      <span class="icon">${icon}</span>${label}${state.screen===s?'<div class="dot"></div>':''}
+    </button>`).join('')}</div>`;
+}
+
+// ═══ RENDER: MODAL ═══
+function renderModal() {
+  if (!state.showModal) return '';
+  
+  if (state.showModal === 'addJob' || state.showModal === 'editJob') {
+    const j = state.editJobData || {};
+    const isEdit = state.showModal === 'editJob';
+    return `
+      <div class="modal-overlay" onclick="setState({showModal:null,editJobData:null})">
+        <div class="modal" onclick="event.stopPropagation()">
+          <h3>${isEdit?'Munka szerkesztése':'Új munka'} <button onclick="setState({showModal:null,editJobData:null})">✕</button></h3>
+          <div class="field"><label>Munka megnevezés</label><input id="mTitle" value="${j.title||''}" placeholder="Olajcsere, Fékbetét..."></div>
+          <div class="field-row">
+            <div class="field"><label>Alkalmazott</label><select id="mEmp">
+              ${state.employees.map(e => `<option value="${e.id}" ${j.employee_id===e.id?'selected':''}>${e.name}</option>`).join('')}
+            </select></div>
+            <div class="field"><label>Dátum</label><input type="date" id="mDate" value="${j.date||state.selectedDate}"></div>
+          </div>
+          <div class="field"><label>Rendszám</label><input id="mPlate" value="${j.plate||''}" placeholder="AB-12-CDE"></div>
+          <div class="field-row3">
+            <div class="field"><label>Lefoglalt (perc)</label><input type="number" id="mBooked" value="${j.booked_min||60}"></div>
+            <div class="field"><label>Tényleges (perc)</label><input type="number" id="mActual" value="${j.actual_min||0}"></div>
+            <div class="field"><label>Kifizetett (perc)</label><input type="number" id="mPaid" value="${j.paid_min||0}"></div>
+          </div>
+          <div class="field"><label>Státusz</label><select id="mStatus">
+            <option value="assigned" ${j.status==='assigned'?'selected':''}>📋 Kiosztva</option>
+            <option value="progress" ${j.status==='progress'?'selected':''}>🔧 Folyamatban</option>
+            <option value="done" ${j.status==='done'?'selected':''}>✅ Kész</option>
+            <option value="paid" ${j.status==='paid'?'selected':''}>💰 Kifizetve</option>
+          </select></div>
+          <div class="modal-actions">
+            <button class="btn-cancel" onclick="setState({showModal:null,editJobData:null})">Mégse</button>
+            <button class="btn-save" onclick="saveJob('${isEdit?j.id:''}')">${isEdit?'Mentés':'Létrehozás'}</button>
+          </div>
+        </div>
+      </div>`;
+  }
+  
+  if (state.showModal === 'addEmployee') {
+    return `
+      <div class="modal-overlay" onclick="setState({showModal:null})">
+        <div class="modal" onclick="event.stopPropagation()">
+          <h3>Új alkalmazott <button onclick="setState({showModal:null})">✕</button></h3>
+          <div class="field"><label>Név</label><input id="eName" placeholder="Kovács János"></div>
+          <div class="field-row">
+            <div class="field"><label>Pozíció</label><select id="eRole">
+              <option>Szerelő</option><option>Festő</option><option>Karosszéria</option>
+              <option>Elektromos</option><option>Diagnosztika</option><option>Gyakornok</option><option>Műszakvezető</option>
+            </select></div>
+            <div class="field"><label>Óradíj (Ft)</label><input type="number" id="eRate" value="3500"></div>
+          </div>
+          <div class="field"><label>PIN kód (4 számjegy)</label><input id="ePin" maxlength="4" placeholder="0009"></div>
+          <div class="modal-actions">
+            <button class="btn-cancel" onclick="setState({showModal:null})">Mégse</button>
+            <button class="btn-save" onclick="saveEmployee()">Hozzáadás</button>
+          </div>
+        </div>
+      </div>`;
+  }
+  return '';
+}
+
+function saveJob(editId) {
+  const job = {
+    title: document.getElementById('mTitle').value,
+    employee_id: document.getElementById('mEmp').value,
+    date: document.getElementById('mDate').value,
+    plate: document.getElementById('mPlate').value,
+    booked_min: parseInt(document.getElementById('mBooked').value) || 0,
+    actual_min: parseInt(document.getElementById('mActual').value) || 0,
+    paid_min: parseInt(document.getElementById('mPaid').value) || 0,
+    status: document.getElementById('mStatus').value,
+  };
+  if (!job.title) { showToast('Add meg a munka nevét!', true); return; }
+  if (editId) updateJob(editId, job);
+  else createJob(job);
+}
+
+function saveEmployee() {
+  const emp = {
+    name: document.getElementById('eName').value,
+    role: document.getElementById('eRole').value,
+    hourly_rate: parseInt(document.getElementById('eRate').value) || 3500,
+    pin_code: document.getElementById('ePin').value,
+  };
+  if (!emp.name) { showToast('Add meg a nevet!', true); return; }
+  if (!emp.pin_code || emp.pin_code.length !== 4) { showToast('A PIN 4 számjegy legyen!', true); return; }
+  createEmployee(emp);
+}
+
+// ═══ CHARTS ═══
+let charts = {};
+function destroyCharts() { Object.values(charts).forEach(c => c?.destroy()); charts = {}; }
+
+function initCharts() {
+  destroyCharts();
+  const empStats = getEmpStats();
+  const stats = getStats();
+  Chart.defaults.color = '#8890A0';
+  Chart.defaults.font.family = '-apple-system, SF Pro Display, sans-serif';
+  Chart.defaults.font.size = 10;
+  const gridColor = '#25283344';
+  
+  // Gauge (dashboard)
+  const gaugeEl = document.getElementById('gaugeChart');
+  if (gaugeEl) {
+    charts.gauge = new Chart(gaugeEl, {
+      type: 'doughnut',
+      data: { datasets: [{ data: [stats.eff, Math.max(0, 140-stats.eff)], backgroundColor: [effColor(stats.eff), '#1A1C25'], borderWidth: 0 }] },
+      options: { cutout: '75%', rotation: -90, circumference: 180, plugins: { legend: { display: false }, tooltip: { enabled: false } }, responsive: true, maintainAspectRatio: false }
+    });
+  }
+  
+  // Status pie (dashboard)
+  const statusEl = document.getElementById('statusPie');
+  if (statusEl) {
+    const sc = { assigned: 0, progress: 0, done: 0, paid: 0 };
+    stats.jobs.forEach(j => sc[j.status] = (sc[j.status]||0) + 1);
+    charts.status = new Chart(statusEl, {
+      type: 'doughnut',
+      data: { labels: ['Kiosztva','Folyamatban','Kész','Kifizetve'], datasets: [{ data: [sc.assigned, sc.progress, sc.done, sc.paid], backgroundColor: ['#FFB020','#00D4AA','#4CAF50','#7C6AFF'], borderWidth: 0 }] },
+      options: { cutout: '55%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, padding: 6, font: { size: 9 } } } }, responsive: true }
+    });
+  }
+  
+  // Emp bar (dashboard)
+  const empBarEl = document.getElementById('empBar');
+  if (empBarEl) {
+    const top5 = empStats.filter(e => e.eff > 0).slice(0, 5);
+    charts.empBar = new Chart(empBarEl, {
+      type: 'bar',
+      data: { labels: top5.map(e => e.name.split(' ')[1]), datasets: [{ data: top5.map(e => e.eff), backgroundColor: top5.map(e => effColor(e.eff)), borderRadius: 4, barThickness: 16 }] },
+      options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridColor }, min: 0, max: 140 }, y: { grid: { display: false } } }, responsive: true }
+    });
+  }
+  
+  // Team chart
+  const teamEl = document.getElementById('teamChart');
+  if (teamEl) {
+    const active = empStats.filter(e => e.jobCount > 0);
+    charts.team = new Chart(teamEl, {
+      type: 'bar',
+      data: { labels: active.map(e => e.name.split(' ')[1]), datasets: [
+        { label: 'Lefoglalt', data: active.map(e => (e.booked/60).toFixed(1)), backgroundColor: '#7C6AFF88', borderRadius: 4, barThickness: 12 },
+        { label: 'Tényleges', data: active.map(e => (e.actual/60).toFixed(1)), backgroundColor: '#FFB02088', borderRadius: 4, barThickness: 12 },
+      ] },
+      options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, padding: 10, font: { size: 10 } } } }, scales: { x: { grid: { display: false } }, y: { grid: { color: gridColor } } }, responsive: true }
+    });
+  }
+  
+  // Performance chart (charts tab)
+  const perfEl = document.getElementById('perfChart');
+  if (perfEl) {
+    const active = empStats.filter(e => e.jobCount > 0);
+    charts.perf = new Chart(perfEl, {
+      type: 'bar',
+      data: { labels: active.map(e => e.name.split(' ')[1]), datasets: [
+        { label: 'Lefoglalt', data: active.map(e => (e.booked/60).toFixed(1)), backgroundColor: '#7C6AFF', borderRadius: 6, barThickness: 14 },
+        { label: 'Tényleges', data: active.map(e => (e.actual/60).toFixed(1)), backgroundColor: '#FFB020', borderRadius: 6, barThickness: 14 },
+        { label: 'Kifizetett', data: active.map(e => (e.paid/60).toFixed(1)), backgroundColor: '#00D4AA', borderRadius: 6, barThickness: 14 },
+      ] },
+      options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, padding: 8 } } }, scales: { x: { grid: { display: false } }, y: { grid: { color: gridColor }, title: { display: true, text: 'Óra' } } }, responsive: true }
+    });
+  }
+  
+  // Revenue pie (charts tab)
+  const revEl = document.getElementById('revPie');
+  if (revEl) {
+    const active = empStats.filter(e => e.revenue > 0);
+    const colors = ['#E53935','#00D4AA','#7C6AFF','#FFB020','#FF6B9D','#00B0FF','#FF9100','#69F0AE'];
+    charts.rev = new Chart(revEl, {
+      type: 'doughnut',
+      data: { labels: active.map(e => e.name.split(' ')[1]), datasets: [{ data: active.map(e => Math.round(e.revenue)), backgroundColor: colors.slice(0, active.length), borderWidth: 0 }] },
+      options: { cutout: '45%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, padding: 6, font: { size: 10 } } } }, responsive: true }
+    });
+  }
+  
+  // Efficiency ranking (charts tab)
+  const effEl = document.getElementById('effRank');
+  if (effEl) {
+    const active = empStats.filter(e => e.eff > 0);
+    charts.eff = new Chart(effEl, {
+      type: 'bar',
+      data: { labels: active.map(e => e.name.split(' ')[1]), datasets: [{ label: 'Hatékonyság %', data: active.map(e => e.eff), backgroundColor: active.map(e => effColor(e.eff)), borderRadius: 6, barThickness: 20 }] },
+      options: { indexAxis: 'y', plugins: { legend: { display: false }, annotation: {} }, scales: { x: { grid: { color: gridColor }, min: 0, max: 150 }, y: { grid: { display: false } } }, responsive: true }
+    });
+  }
+}
+
+// ═══ INIT ═══
+render();
+</script>
+</body>
+</html>
