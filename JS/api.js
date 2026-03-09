@@ -13,13 +13,14 @@ export const sb = window.supabase.createClient(SB_URL, SB_KEY);
 export async function loginAdmin(username, password) {
   const { data: admin, error } = await sb
     .from('admins').select('*')
-    .eq('username', username).eq('password', password)
-    .eq('is_active', true).single();
+    .eq('username', username)
+    .eq('password_hash', password)
+    .single();
   if (error || !admin) throw new Error('Hibás belépési adatok');
 
   const { data: shop } = await sb
     .from('shops').select('*')
-    .eq('id', admin.shop_id).eq('is_active', true).single();
+    .eq('id', admin.shop_id).single();
   if (!shop) throw new Error('Szerviz nem található');
 
   return { admin, shop };
