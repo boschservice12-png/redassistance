@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>RedAssistance — Worker</title>
+<meta name="theme-color" content="#E53935">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RedAssist">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════ */
+:root{
+  --red:#E53935;--red2:#FF6B6B;
+  --bg:#0D0E14;--bg2:#1A1D27;--bg3:#252838;--border:#2A2D3E;
+  --text:#E8ECF4;--muted:#6B7280;
+  --green:#4CAF50;--amber:#FFB020;--blue:#2196F3;
+  --purple:#9C27B0;--cyan:#00D4AA;--pink:#FF6B9D;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100vh;min-height:100dvh;background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',sans-serif;-webkit-text-size-adjust:100%}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ═══════════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════════ */
+#loginScreen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;min-height:100dvh;padding:20px;
+  background:radial-gradient(ellipse at 30% 30%,rgba(229,57,53,.07) 0%,transparent 60%),var(--bg);
+}
+#loginScreen.hidden{display:none}
+.lbox{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;padding:32px 24px;text-align:center;width:100%;max-width:380px;
+  box-shadow:0 24px 60px rgba(0,0,0,.6);
+}
+.llogo{
+  width:60px;height:60px;border-radius:16px;margin:0 auto 16px;
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:900;color:#fff;
+}
+.lbox h1{font-size:22px;font-weight:900;margin-bottom:4px}
+.lbox h1 b{color:var(--red)}
+.lbox p{font-size:14px;color:var(--muted);margin-bottom:20px}
+.lang-bar{display:flex;justify-content:center;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.lang-btn{
+  padding:10px 16px;border-radius:10px;font-size:14px;font-weight:700;min-height:44px;
+  background:var(--bg3);border:1px solid var(--border);color:var(--muted);
+}
+.lang-btn.on{border-color:var(--red);color:var(--red);background:rgba(229,57,53,.1)}
+#pinField{
+  width:100%;padding:16px;border-radius:12px;border:2px solid var(--border);
+  background:var(--bg3);color:var(--text);font-size:32px;text-align:center;
+  letter-spacing:16px;display:block;margin:0 auto 14px;min-height:60px;
+}
+#pinField:focus{border-color:var(--red)}
+.lbtn{
+  width:100%;padding:16px;border-radius:14px;min-height:56px;
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  color:#fff;font-size:18px;font-weight:700;
+}
+#loginErr{color:var(--red);font-size:13px;margin-top:10px;min-height:18px}
+
+/* ═══════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════ */
+#appShell{display:none}
+#appShell.visible{display:block}
+
+/* Header */
+.hdr{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:10px 14px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:20;
+}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-logo{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;color:#fff;flex-shrink:0;
+}
+.hdr-av{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;flex-shrink:0;
+}
+.hdr-name{font-size:14px;font-weight:700;color:var(--text)}
+.hdr-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.hdr-rate{font-size:11px;color:var(--amber);font-weight:700}
+.hdr-right{display:flex;align-items:center;gap:5px}
+.lang-mini{
+  padding:5px 8px;border-radius:6px;font-size:11px;font-weight:700;
+  background:var(--bg3);border:1px solid var(--border);color:var(--muted);min-height:32px;
+}
+.lang-mini.on{border-color:var(--red);color:var(--red)}
+.logout-btn{
+  padding:5px 10px;border-radius:6px;
+  background:var(--bg3);border:1px solid var(--border);color:var(--muted);
+  font-size:11px;font-weight:600;min-height:32px;
+}
+
+/* Content */
+.content{padding:12px;max-width:600px;margin:0 auto;padding-bottom:80px}
+
+/* Tabs */
+.app-tabs{
+  display:flex;background:var(--bg3);border-radius:10px;padding:3px;
+  margin-bottom:14px;border:1px solid var(--border);gap:2px;
+}
+.app-tab{
+  flex:1;padding:10px 6px;border-radius:8px;text-align:center;
+  font-size:12px;font-weight:700;color:var(--muted);background:none;min-height:40px;
+}
+.app-tab.on{background:var(--red);color:#fff}
+.app-pg{display:none}.app-pg.on{display:block}
+
+/* ═══════════════════════════════════════════
+   KPI CARDS (worker stats)
+═══════════════════════════════════════════ */
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px}
+.st-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:12px;text-align:center;position:relative;overflow:hidden;
+}
+.st-card .val{font-size:22px;font-weight:900;color:var(--text)}
+.st-card .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.st-card .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.st-card .bar{position:absolute;bottom:0;left:0;right:0;height:3px}
+
+/* Target gauge */
+.target-gauge{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;padding:16px;margin-bottom:12px;
+}
+.tg-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.tg-val{font-size:32px;font-weight:900;text-align:center;margin-bottom:4px}
+.tg-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:10px}
+.tg-bar{height:12px;background:var(--bg3);border-radius:6px;position:relative;overflow:hidden}
+.tg-fill{height:100%;border-radius:6px;transition:width .4s}
+.tg-min-mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:rgba(229,57,53,.6);z-index:1}
+.tg-marks{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px}
+
+/* Date nav */
+.date-bar{
+  display:flex;align-items:center;justify-content:center;
+  gap:8px;margin-bottom:12px;
+}
+.date-bar button{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--muted);font-size:16px;display:flex;align-items:center;justify-content:center;
+}
+.date-bar .dtext{font-size:13px;font-weight:700;min-width:160px;text-align:center;color:var(--text)}
+.today-btn{
+  padding:6px 12px;border-radius:8px;
+  background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.2);
+  color:var(--red);font-size:12px;font-weight:700;min-height:36px;
+}
+
+/* ═══════════════════════════════════════════
+   EXTRA WORK BUTTON
+═══════════════════════════════════════════ */
+.extra-float{
+  width:100%;padding:14px;border-radius:12px;
+  background:linear-gradient(135deg,var(--pink),var(--red));
+  color:#fff;font-size:14px;font-weight:800;
+  margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 16px rgba(229,57,53,.3);
+}
+
+/* ═══════════════════════════════════════════
+   BLOCK SECTIONS (DE / DU)
+═══════════════════════════════════════════ */
+.block-section{margin-bottom:14px}
+.block-header{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;border-radius:12px 12px 0 0;
+}
+.bh-de{background:rgba(33,150,243,.08);border:1px solid rgba(33,150,243,.2);border-bottom:none}
+.bh-du{background:rgba(74,144,217,.08);border:1px solid rgba(74,144,217,.2);border-bottom:none}
+.bh-icon{font-size:18px}
+.bh-title{font-size:12px;font-weight:800;flex:1;letter-spacing:.5px}
+.bh-de .bh-title{color:var(--blue)}
+.bh-du .bh-title{color:#4A90D9}
+.bh-cap{display:flex;align-items:center;gap:6px}
+.bh-cap-bar{width:60px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.bh-cap-fill{height:100%;border-radius:3px}
+.bh-cap-text{font-size:12px;font-weight:700}
+.block-body{
+  border:1px solid var(--border);border-top:none;
+  border-radius:0 0 12px 12px;padding:6px;background:var(--bg2);
+}
+.block-empty{text-align:center;padding:16px;color:var(--muted);font-size:12px}
+
+/* ═══════════════════════════════════════════
+   JOB CARDS
+═══════════════════════════════════════════ */
+.jcard{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:12px;padding:14px;margin-bottom:6px;
+  transition:border-color .15s;
+}
+.jcard:last-child{margin-bottom:0}
+.jcard.is-warranty{border-left:3px solid var(--cyan)}
+.jcard.is-done{opacity:.65}
+.jcard.is-active{border-color:var(--amber)}
+
+/* Job card header */
+.jc-row1{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.jc-plate{font-size:16px;font-weight:800;color:var(--amber)}
+.jc-client{font-size:13px;color:var(--text);margin-top:1px}
+.jc-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
+.jc-tag{padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700}
+.tag-warranty{background:rgba(0,212,170,.12);color:var(--cyan)}
+.tag-dep{background:rgba(255,255,255,.06);color:var(--muted)}
+
+/* Status badge */
+.st-badge{padding:4px 10px;border-radius:10px;font-size:12px;font-weight:700}
+.st-a{background:rgba(229,57,53,.15);color:var(--red)}
+.st-p{background:rgba(255,176,32,.15);color:var(--amber)}
+.st-d{background:rgba(76,175,80,.15);color:var(--green)}
+.st-k{background:rgba(33,150,243,.15);color:var(--blue)}
+.st-c{background:rgba(156,39,176,.15);color:var(--purple)}
+
+/* Time info */
+.jc-time{font-size:12px;color:var(--muted);display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.jc-time b{color:var(--text)}
+
+/* Actual minutes input */
+.jc-input-row{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 0;border-top:1px solid var(--border);flex-wrap:wrap;
+}
+.jc-input-label{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+.jc-input{
+  width:70px;padding:8px;border-radius:8px;border:1px solid var(--border);
+  background:var(--bg);color:var(--text);font-size:15px;font-weight:700;text-align:center;
+  min-height:40px;
+}
+.jc-input:focus{border-color:var(--red)}
+.jc-presets{display:flex;gap:3px;flex-wrap:wrap}
+.jc-pre{
+  padding:6px 10px;border-radius:6px;font-size:12px;font-weight:600;
+  background:var(--bg);border:1px solid var(--border);color:var(--muted);min-height:36px;
+}
+.jc-pre:hover{border-color:var(--red);color:var(--red)}
+.jc-save{
+  padding:8px 16px;border-radius:8px;min-height:40px;
+  background:linear-gradient(135deg,#2E7D32,#43A047);
+  color:#fff;font-size:13px;font-weight:700;
+}
+
+/* Status advance buttons */
+.jc-advance{
+  display:flex;width:100%;margin-top:8px;gap:4px;
+}
+.adv-btn{
+  flex:1;padding:12px;border-radius:10px;font-size:13px;font-weight:800;
+  min-height:48px;border:2px solid transparent;
+}
+.adv-btn.to-progress{background:rgba(255,176,32,.12);border-color:rgba(255,176,32,.3);color:var(--amber)}
+.adv-btn.to-done{background:rgba(76,175,80,.12);border-color:rgba(76,175,80,.3);color:var(--green)}
+.adv-btn.to-paid{background:rgba(33,150,243,.12);border-color:rgba(33,150,243,.3);color:var(--blue)}
+.adv-btn.to-complete{background:rgba(156,39,176,.12);border-color:rgba(156,39,176,.3);color:var(--purple)}
+.adv-btn:active{transform:scale(.97)}
+
+/* ═══════════════════════════════════════════
+   EXTRA WORK FORM
+═══════════════════════════════════════════ */
+.extra-form{
+  background:var(--bg2);border:1px solid rgba(255,107,157,.3);
+  border-radius:14px;padding:16px;margin-bottom:14px;display:none;
+}
+.extra-form.open{display:block}
+.ef-title{
+  font-size:14px;font-weight:800;color:var(--pink);
+  margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;
+}
+.ef-title button{background:none;color:var(--muted);font-size:20px;line-height:1}
+.fl{margin-bottom:10px}
+.fl label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+.fl input,.fl select,.fl textarea{
+  width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--text);font-size:14px;min-height:44px;
+}
+.fl input:focus,.fl select:focus,.fl textarea:focus{border-color:var(--red)}
+.fl textarea{resize:vertical;min-height:60px}
+.flr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.blk-row{display:flex;gap:6px;margin-bottom:12px}
+.blk-btn{
+  flex:1;padding:12px;border-radius:10px;text-align:center;
+  font-weight:700;font-size:12px;border:2px solid var(--border);
+  background:var(--bg3);color:var(--muted);min-height:48px;
+}
+.blk-btn.de-on{border-color:var(--blue);color:var(--blue);background:rgba(33,150,243,.08)}
+.blk-btn.du-on{border-color:#4A90D9;color:#4A90D9;background:rgba(74,144,217,.08)}
+.blk-btn small{display:block;font-size:11px;font-weight:400;margin-top:2px}
+.dur-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.dur-btn{
+  padding:8px 12px;border-radius:8px;font-size:13px;font-weight:700;
+  background:var(--bg3);border:1px solid var(--border);color:var(--muted);min-height:40px;
+}
+.dur-btn:hover,.dur-btn.on{border-color:var(--pink);color:var(--pink)}
+.save-btn{
+  width:100%;padding:14px;border-radius:12px;min-height:52px;
+  background:linear-gradient(135deg,var(--pink),var(--red));
+  color:#fff;font-size:15px;font-weight:800;
+  box-shadow:0 4px 16px rgba(229,57,53,.3);
+}
+
+/* ═══════════════════════════════════════════
+   PERIOD / STATS VIEWS
+═══════════════════════════════════════════ */
+.period-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;padding:16px;margin-bottom:12px;
+}
+.period-title{
+  font-size:12px;font-weight:800;margin-bottom:12px;
+  display:flex;justify-content:space-between;align-items:center;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--text);
+}
+.period-title .badge{padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700}
+.period-row{
+  display:flex;align-items:center;padding:8px 0;
+  border-bottom:1px solid rgba(42,45,62,.6);gap:8px;
+}
+.period-row:last-child{border-bottom:none}
+.period-row .day{font-size:13px;font-weight:600;width:90px;flex-shrink:0;color:var(--text)}
+.period-row .vals{display:flex;gap:14px;flex:1;font-size:12px;flex-wrap:wrap}
+.period-row .vals span{display:flex;flex-direction:column;align-items:center}
+.period-row .vals .v{font-size:13px;font-weight:800;color:var(--text)}
+.period-row .vals .l{font-size:10px;color:var(--muted)}
+.period-total{
+  display:flex;align-items:center;padding:10px 0;gap:8px;
+  font-weight:700;border-top:2px solid var(--border);margin-top:4px;
+}
+.period-total .day{font-size:11px;font-weight:800;width:90px;color:var(--red)}
+
+/* ═══════════════════════════════════════════
+   HR DOCS (worker read-only view)
+═══════════════════════════════════════════ */
+.doc-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:14px;margin-bottom:8px;
+}
+.doc-card-top{display:flex;align-items:flex-start;gap:10px}
+.doc-icon{font-size:24px;flex-shrink:0;margin-top:2px}
+.doc-title{font-size:14px;font-weight:700;color:var(--text)}
+.doc-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.doc-content{
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--border);
+  font-size:13px;color:var(--text);line-height:1.6;display:none;
+}
+.doc-content.open{display:block}
+.doc-expand{
+  margin-top:8px;padding:8px;border-radius:8px;width:100%;
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--muted);font-size:12px;font-weight:600;min-height:36px;
+}
+.doc-read-badge{
+  padding:3px 8px;border-radius:8px;font-size:10px;font-weight:700;
+  background:rgba(76,175,80,.12);color:var(--green);margin-left:auto;flex-shrink:0;
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+#toastEl{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  padding:12px 24px;border-radius:12px;font-size:13px;font-weight:700;
+  z-index:2000;display:none;white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════
+     LOGIN
+═══════════════════════════ -->
+<div id="loginScreen">
+  <div class="lbox">
+    <div class="llogo">RA</div>
+    <h1><b>Red</b>Assist</h1>
+    <p id="lsub">Szerelő belépés</p>
+    <div class="lang-bar">
+      <button class="lang-btn on" onclick="setLang('hu')">🇭🇺 HU</button>
+      <button class="lang-btn" onclick="setLang('ro')">🇷🇴 RO</button>
+      <button class="lang-btn" onclick="setLang('en')">🇬🇧 EN</button>
+    </div>
+    <input id="pinField" type="password" inputmode="numeric" maxlength="6" placeholder="••••"
+           onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="lbtn" onclick="doLogin()" id="loginBtn">Belépés</button>
+    <div id="loginErr"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toastEl"></div>
+
+<!-- ═══════════════════════════
+     APP SHELL
+═══════════════════════════ -->
+<div id="appShell">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="hdr-logo">RA</div>
+      <div class="hdr-av" id="hdrAv" style="background:#888"></div>
+      <div>
+        <div class="hdr-name" id="hdrName">—</div>
+        <div style="display:flex;gap:6px">
+          <div class="hdr-meta" id="hdrRole">—</div>
+          <div class="hdr-rate" id="hdrRate"></div>
+        </div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <button class="lang-mini on" onclick="setLang('hu')">HU</button>
+      <button class="lang-mini" onclick="setLang('ro')">RO</button>
+      <button class="lang-mini" onclick="setLang('en')">EN</button>
+      <button class="logout-btn" onclick="doLogout()">✕</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Tabs -->
+    <div class="app-tabs">
+      <button class="app-tab on" onclick="showTab('pgDaily')">📋 <span data-t="mai">Mai</span></button>
+      <button class="app-tab" onclick="showTab('pgStats')">📊 <span data-t="statisztika">Stat</span></button>
+      <button class="app-tab" onclick="showTab('pgDocs')">📂 <span data-t="szabalyok">Docs</span></button>
+    </div>
+
+    <!-- ══ TAB: DAILY ══ -->
+    <div class="app-pg on" id="pgDaily">
+
+      <!-- Date nav -->
+      <div class="date-bar">
+        <button onclick="shiftDate(-1)">◀</button>
+        <div class="dtext" id="dateDisp">—</div>
+        <button onclick="shiftDate(1)">▶</button>
+        <button class="today-btn" onclick="goToday()">Ma</button>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-row">
+        <div class="st-card">
+          <div class="val" id="sTot">0</div>
+          <div class="lbl" data-t="osszes">Összes</div>
+          <div class="bar" style="background:var(--red)"></div>
+        </div>
+        <div class="st-card">
+          <div class="val" style="color:var(--amber)" id="sAct">0</div>
+          <div class="lbl" data-t="aktiv">Aktív</div>
+          <div class="bar" style="background:var(--amber)"></div>
+        </div>
+        <div class="st-card">
+          <div class="val" style="color:var(--green)" id="sDone">0</div>
+          <div class="lbl" data-t="kesz">Kész</div>
+          <div class="bar" style="background:var(--green)"></div>
+        </div>
+      </div>
+
+      <!-- Hour gauge -->
+      <div class="target-gauge">
+        <div class="tg-title">
+          <span data-t="maOrak">Mai munkaórák</span>
+          <span id="gaugeEff" style="font-size:13px;font-weight:800">—%</span>
+        </div>
+        <div class="tg-val" id="gaugeVal">0.0h</div>
+        <div class="tg-sub" id="gaugeSub">tervezett</div>
+        <div class="tg-bar">
+          <div class="tg-fill" id="gaugeFill" style="width:0%;background:var(--green)"></div>
+          <div class="tg-min-mark" id="gaugeMinMark" style="left:60%"></div>
+        </div>
+        <div class="tg-marks">
+          <span>0h</span>
+          <span id="gaugeMinLbl">—h min</span>
+          <span id="gaugeMaxLbl">—h cél</span>
+        </div>
+      </div>
+
+      <!-- Extra work button -->
+      <button class="extra-float" onclick="toggleExtraForm()">
+        ⚡ <span data-t="extraMunka">Extra munka hozzáadása</span>
+      </button>
+
+      <!-- Extra work form -->
+      <div class="extra-form" id="extraForm">
+        <div class="ef-title">
+          ⚡ <span data-t="extraCim">Extra munka</span>
+          <button onclick="toggleExtraForm()">✕</button>
+        </div>
+
+        <div class="blk-row">
+          <button class="blk-btn de-on" id="exDE" onclick="selExBlk('DE')">☀️ DE<small>08:00–13:00</small></button>
+          <button class="blk-btn" id="exDU" onclick="selExBlk('DU')">🌇 DU<small>14:00–18:00</small></button>
+        </div>
+
+        <div class="fl"><label data-t="rendszam">Rendszám</label>
+          <input id="exPlate" placeholder="AB-12-CDE" style="text-transform:uppercase"></div>
+        <div class="fl"><label data-t="ugyfelNeve">Ügyfél neve</label>
+          <input id="exClient" placeholder="Ügyfél neve"></div>
+        <div class="fl"><label data-t="munkaLeiras">Munka leírása</label>
+          <input id="exDesc" placeholder="pl. olajcsere, féktárcsa..."></div>
+
+        <div class="fl">
+          <label data-t="idotartam">Időtartam (perc)</label>
+          <input type="number" id="exDur" placeholder="60" min="5" max="480">
+          <div class="dur-row" id="durBtns">
+            <button class="dur-btn" onclick="setDur(30)">30m</button>
+            <button class="dur-btn" onclick="setDur(60)">1h</button>
+            <button class="dur-btn" onclick="setDur(90)">1.5h</button>
+            <button class="dur-btn" onclick="setDur(120)">2h</button>
+            <button class="dur-btn" onclick="setDur(180)">3h</button>
+          </div>
+        </div>
+
+        <div class="fl" style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="exWarranty" style="width:auto;min-height:auto">
+          <label style="display:inline;text-transform:none;letter-spacing:0;font-size:13px">
+            🔵 <span data-t="garanciaMunka">Garancia munka</span>
+          </label>
+        </div>
+
+        <button class="save-btn" onclick="saveExtra()">
+          ⚡ <span data-t="mentesMunka">Mentés</span>
+        </button>
+      </div>
+
+      <!-- DE Block -->
+      <div class="block-section">
+        <div class="block-header bh-de">
+          <div class="bh-icon">☀️</div>
+          <div class="bh-title">DÉLELŐTT — 08:00–13:00</div>
+          <div class="bh-cap" id="capDE">
+            <div class="bh-cap-bar"><div class="bh-cap-fill" id="capDeBar" style="width:0%;background:var(--blue)"></div></div>
+            <div class="bh-cap-text" id="capDeText" style="color:var(--blue)">0%</div>
+          </div>
+        </div>
+        <div class="block-body" id="blockDE">
+          <div class="block-empty">Nincsenek délelőtti munkák</div>
+        </div>
+      </div>
+
+      <!-- DU Block -->
+      <div class="block-section">
+        <div class="block-header bh-du">
+          <div class="bh-icon">🌇</div>
+          <div class="bh-title">DÉLUTÁN — 14:00–18:00</div>
+          <div class="bh-cap" id="capDU">
+            <div class="bh-cap-bar"><div class="bh-cap-fill" id="capDuBar" style="width:0%;background:#4A90D9"></div></div>
+            <div class="bh-cap-text" id="capDuText" style="color:#4A90D9">0%</div>
+          </div>
+        </div>
+        <div class="block-body" id="blockDU">
+          <div class="block-empty">Nincsenek délutáni munkák</div>
+        </div>
+      </div>
+
+    </div><!-- /pgDaily -->
+
+    <!-- ══ TAB: STATS ══ -->
+    <div class="app-pg" id="pgStats">
+
+      <!-- Weekly gauge -->
+      <div class="target-gauge">
+        <div class="tg-title">
+          <span data-t="hetiOrak">Heti munkaórák</span>
+          <span id="wkEff" style="font-size:13px;font-weight:800">—%</span>
+        </div>
+        <div class="tg-val" id="wkVal">0.0h</div>
+        <div class="tg-sub" id="wkSub">0h célból</div>
+        <div class="tg-bar">
+          <div class="tg-fill" id="wkFill" style="width:0%;background:var(--blue)"></div>
+        </div>
+        <div class="tg-marks">
+          <span>0h</span>
+          <span id="wkMinLbl">—h min</span>
+          <span id="wkMaxLbl">—h cél</span>
+        </div>
+      </div>
+
+      <!-- This week breakdown -->
+      <div class="period-card" id="weekCard">
+        <div class="period-title">
+          <span data-t="hetiBontás">Heti bontás</span>
+          <span class="badge" id="wkBadge" style="background:rgba(33,150,243,.12);color:var(--blue)">—h</span>
+        </div>
+        <div id="weekRows"></div>
+      </div>
+
+      <!-- Month summary -->
+      <div class="period-card" id="monthCard">
+        <div class="period-title">
+          <span data-t="haviOssz">Havi összesítő</span>
+          <span class="badge" id="moBadge" style="background:rgba(76,175,80,.12);color:var(--green)">—h</span>
+        </div>
+        <div id="monthRows"></div>
+      </div>
+
+    </div><!-- /pgStats -->
+
+    <!-- ══ TAB: DOCS ══ -->
+    <div class="app-pg" id="pgDocs">
+      <div id="docsContent">
+        <div style="text-align:center;padding:32px;color:var(--muted)">Dokumentumok betöltése...</div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /appShell -->
+
+<!-- ═══════════════════════════
+     SCRIPT
+═══════════════════════════ -->
+<script type="module">
+import { SB_URL, SB_KEY, STATUS_FLOW, DEPARTMENTS, KPI_TARGETS,
+         EFFICIENCY_STATUSES } from './js/config.js';
+import { loginWorker, fetchJobs, advanceStatus, saveJob,
+         fetchHrDocs, markDocRead, fetchDocReads } from './js/api.js';
+import { t as _t, setLang as i18nSetLang } from './js/i18n.js';
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let _lang  = 'hu';
+let _worker = null;          // {id, name, department, rate_per_hour, color, ...}
+let _shopId = 1;
+let _date   = todayStr();
+let _jobs   = [];
+let _docs   = [];
+let _reads  = new Set();
+let _exBlock = 'DE';
+
+const TGT_H = KPI_TARGETS.monthlyHours / 22;  // ~7.6h/nap
+const MIN_H = KPI_TARGETS.minHours     / 22;  // ~6.4h/nap
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtH(m){ return (m/60).toFixed(1)+'h'; }
+function fmtHM(m){ const h=Math.floor(m/60),r=m%60; return h>0?h+'h'+(r?' '+r+'m':''):r+'m'; }
+function ini(s){ return (s||'').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+
+function fmtDate(str, lang){
+  const d = new Date(str+'T00:00:00');
+  return d.toLocaleDateString(lang==='hu'?'hu-HU':lang==='ro'?'ro-RO':'en-GB',
+    {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+function fmtDateShort(str, lang){
+  const d = new Date(str+'T00:00:00');
+  return d.toLocaleDateString(lang==='hu'?'hu-HU':lang==='ro'?'ro-RO':'en-GB',
+    {weekday:'short',month:'short',day:'numeric'});
+}
+
+function toast(msg, type='success', ms=2200){
+  const el = document.getElementById('toastEl');
+  el.textContent = msg;
+  el.style.display='block';
+  el.style.background = type==='error'?'#C62828':type==='warning'?'#F57F17':'#1B5E20';
+  el.style.color='#fff';
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.style.display='none', ms);
+}
+
+function showLoad(on){
+  document.getElementById('loginBtn').textContent = on ? '...' : t('belepes')||'Belépés';
+}
+
+function t(key){ return _t(key,_lang)||key; }
+
+// ─────────────────────────────────────────────
+// LANG
+// ─────────────────────────────────────────────
+window.setLang = function(l){
+  _lang = l;
+  i18nSetLang(l);
+  // Update lang buttons
+  document.querySelectorAll('.lang-btn,.lang-mini').forEach(b=>{
+    b.classList.toggle('on', b.textContent.trim().startsWith(l.toUpperCase()));
+  });
+  // Update data-t elements
+  document.querySelectorAll('[data-t]').forEach(el=>{
+    const k = el.dataset.t;
+    const v = _t(k, l);
+    if(v) el.textContent = v;
+  });
+  renderAll();
+};
+
+// ─────────────────────────────────────────────
+// LOGIN
+// ─────────────────────────────────────────────
+window.doLogin = async function(){
+  const pin = document.getElementById('pinField').value.trim();
+  document.getElementById('loginErr').textContent = '';
+  showLoad(true);
+  try {
+    const worker = await loginWorker(pin);
+    if(worker){
+      _worker = worker;
+      _shopId = worker.shop_id || 1;
+      afterLogin();
+      return;
+    }
+    document.getElementById('loginErr').textContent = t('hibas_pin')||'Hibás PIN';
+  } catch(e){
+    document.getElementById('loginErr').textContent = t('hibas_pin')||'Hibás PIN';
+  }
+  showLoad(false);
+};
+
+async function afterLogin(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appShell').classList.add('visible');
+
+  // Set header
+  document.getElementById('hdrName').textContent = _worker.name || '—';
+  document.getElementById('hdrRole').textContent = _worker.department || '—';
+  if(_worker.rate_per_hour)
+    document.getElementById('hdrRate').textContent = _worker.rate_per_hour+' RON/h';
+  const av = document.getElementById('hdrAv');
+  av.textContent = ini(_worker.name);
+  av.style.background = _worker.color || '#888';
+  av.style.color = '#1A1A2E';
+
+  await loadData();
+}
+
+window.doLogout = function(){ location.reload(); };
+
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+async function loadData(){
+  try {
+    // Fetch jobs for this worker for the current date
+    const { sb } = await import('./js/api.js');
+    // We fetch all jobs for this employee
+    const [jobsRes, docsRes, readsRes] = await Promise.all([
+      fetchJobs(_shopId, _date).then(j => j.filter(x => x.employee_id === _worker.id)),
+      fetchHrDocs(_shopId, {}),
+      fetchDocReads(_shopId, _worker.id),
+    ]);
+    _jobs  = jobsRes || [];
+    _docs  = docsRes || [];
+    _reads = new Set((readsRes||[]).map(r=>r.document_id));
+    renderAll();
+  } catch(e){
+    toast('Betöltési hiba: '+e.message, 'error', 4000);
+  }
+}
+
+// ─────────────────────────────────────────────
+// DATE NAV
+// ─────────────────────────────────────────────
+window.shiftDate = function(d){
+  const dt = new Date(_date+'T00:00:00');
+  dt.setDate(dt.getDate()+d);
+  _date = dt.toISOString().slice(0,10);
+  loadData();
+  updateDateDisp();
+};
+window.goToday = function(){
+  _date = todayStr();
+  loadData();
+  updateDateDisp();
+};
+function updateDateDisp(){
+  document.getElementById('dateDisp').textContent = fmtDate(_date, _lang);
+}
+
+// ─────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────
+window.showTab = function(id){
+  document.querySelectorAll('.app-pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.app-tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  const idx={pgDaily:0,pgStats:1,pgDocs:2}[id];
+  document.querySelectorAll('.app-tab')[idx]?.classList.add('on');
+  if(id==='pgStats') renderStats();
+  if(id==='pgDocs')  renderDocs();
+};
+
+// ─────────────────────────────────────────────
+// RENDER ALL
+// ─────────────────────────────────────────────
+function renderAll(){
+  updateDateDisp();
+  renderDailyStats();
+  renderGauge();
+  renderBlocks();
+}
+
+// ─────────────────────────────────────────────
+// DAILY STATS
+// ─────────────────────────────────────────────
+function renderDailyStats(){
+  const tot  = _jobs.length;
+  const act  = _jobs.filter(j=>['assigned','progress'].includes(j.status)).length;
+  const done = _jobs.filter(j=>EFFICIENCY_STATUSES.includes(j.status)).length;
+  document.getElementById('sTot').textContent  = tot;
+  document.getElementById('sAct').textContent  = act;
+  document.getElementById('sDone').textContent = done;
+}
+
+// ─────────────────────────────────────────────
+// HOUR GAUGE
+// ─────────────────────────────────────────────
+function renderGauge(){
+  const totalMin = _jobs.reduce((s,j)=>s+(j.actual_min||j.planned_min||0),0);
+  const planMin  = _jobs.reduce((s,j)=>s+(j.planned_min||0),0);
+  const eff = planMin ? Math.round(totalMin/planMin*100) : 0;
+
+  document.getElementById('gaugeVal').textContent = fmtH(totalMin);
+  document.getElementById('gaugeSub').textContent = planMin ? `${fmtH(planMin)} tervezett` : 'nincs tervezett munka';
+  document.getElementById('gaugeEff').textContent = eff+'%';
+
+  const tgtMin = TGT_H * 60;
+  const minMin = MIN_H * 60;
+  const pct = Math.min(100, totalMin / tgtMin * 100);
+  const fill = document.getElementById('gaugeFill');
+  fill.style.width = pct+'%';
+  fill.style.background = totalMin >= tgtMin ? 'var(--green)' : totalMin >= minMin ? 'var(--amber)' : 'var(--red)';
+
+  const minPct = minMin / tgtMin * 100;
+  document.getElementById('gaugeMinMark').style.left = minPct+'%';
+  document.getElementById('gaugeMinLbl').textContent = fmtH(minMin)+' min';
+  document.getElementById('gaugeMaxLbl').textContent = fmtH(tgtMin)+' cél';
+}
+
+// ─────────────────────────────────────────────
+// BLOCK RENDER
+// ─────────────────────────────────────────────
+function renderBlocks(){
+  const deJobs = _jobs.filter(j=>(j.block||'DE')==='DE' || (!j.block && j.start_time < '13:00'));
+  const duJobs = _jobs.filter(j=>(j.block||'DU')==='DU' || (!j.block && j.start_time >= '14:00'));
+
+  renderBlock('blockDE', deJobs, 'DE', 5*60, 'capDeBar', 'capDeText', 'var(--blue)');
+  renderBlock('blockDU', duJobs, 'DU', 4*60, 'capDuBar', 'capDuText', '#4A90D9');
+}
+
+function renderBlock(containerId, jobs, block, totalMins, barId, textId, color){
+  const usedMin  = jobs.reduce((s,j)=>s+(j.planned_min||0),0);
+  const pct      = Math.min(100, Math.round(usedMin/totalMins*100));
+  document.getElementById(barId).style.width  = pct+'%';
+  document.getElementById(barId).style.background = pct>90?'var(--red)':color;
+  document.getElementById(textId).textContent = pct+'%';
+  document.getElementById(textId).style.color = pct>90?'var(--red)':color;
+
+  const el = document.getElementById(containerId);
+  if(!jobs.length){
+    el.innerHTML = `<div class="block-empty">${block==='DE'?'Nincsenek délelőtti':'Nincsenek délutáni'} munkák</div>`;
+    return;
+  }
+
+  el.innerHTML = jobs.map(job => buildJobCard(job)).join('');
+}
+
+function buildJobCard(job){
+  const eff = job.actual_min && job.planned_min
+    ? Math.round(job.actual_min / job.planned_min * 100) : null;
+  const stCls = {assigned:'st-a',progress:'st-p',done:'st-d',paid:'st-k',complete:'st-c'}[job.status]||'st-a';
+  const stLabel = STATUS_FLOW[job.status]?.label?.[_lang] || job.status;
+  const isDone  = EFFICIENCY_STATUSES.includes(job.status);
+  const isActive= ['assigned','progress'].includes(job.status);
+
+  const nextSt = getNext(job);
+  const advBtn = nextSt && !isDone ? buildAdvBtn(job.id, nextSt) : '';
+  const needAct = nextSt==='done' && !job.actual_min;
+
+  return `<div class="jcard${job.is_warranty?' is-warranty':''}${isDone?' is-done':''}${isActive?' is-active':''}" id="jcard_${job.id}">
+    <div class="jc-row1">
+      <div>
+        <div class="jc-plate">${job.plate||'?'}</div>
+        <div class="jc-client">${job.client_name||'—'}</div>
+        <div class="jc-tags">
+          ${job.is_warranty?`<span class="jc-tag tag-warranty">🔵 Garancia</span>`:''}
+          <span class="jc-tag tag-dep">${job.department||''}</span>
+        </div>
+      </div>
+      <div><span class="st-badge ${stCls}">${stLabel}</span></div>
+    </div>
+
+    <div class="jc-time">
+      ${job.start_time?`<span>🕐 <b>${job.start_time}</b></span>`:''}
+      ${job.planned_min?`<span>📋 <b>${fmtHM(job.planned_min)}</b> terv</span>`:''}
+      ${job.actual_min?`<span style="color:${eff&&eff>=100?'var(--green)':'var(--amber)}">✅ <b>${fmtHM(job.actual_min)}</b> tény</span>`:''}
+      ${eff?`<span style="color:${eff>=100?'var(--green)':eff>=80?'var(--amber)':'var(--red)'}">⚡ <b>${eff}%</b></span>`:''}
+      ${job.description?`<span>📝 ${job.description}</span>`:''}
+    </div>
+
+    ${!isDone ? `
+    <div class="jc-input-row">
+      <span class="jc-input-label">Tény perc:</span>
+      <input class="jc-input" type="number" id="act_${job.id}"
+             value="${job.actual_min||''}" placeholder="perc" min="1" max="600">
+      <div class="jc-presets">
+        ${[30,45,60,90,120].map(m=>`<button class="jc-pre" onclick="setAct('${job.id}',${m})">${m<60?m+'m':(m/60)+'h'}</button>`).join('')}
+      </div>
+      <button class="jc-save" onclick="saveActMin('${job.id}')">💾</button>
+    </div>` : ''}
+
+    ${advBtn}
+  </div>`;
+}
+
+function getNext(job){
+  const flow = STATUS_FLOW[job.status];
+  return flow?.next || null;
+}
+
+function buildAdvBtn(jobId, nextSt){
+  const label = STATUS_FLOW[nextSt]?.label?.[_lang] || nextSt;
+  const cls = {
+    progress:'to-progress', done:'to-done', paid:'to-paid', complete:'to-complete'
+  }[nextSt] || 'to-progress';
+  const icon = {progress:'🔧',done:'✅',paid:'💳',complete:'🏁'}[nextSt]||'→';
+  return `<div class="jc-advance">
+    <button class="adv-btn ${cls}" onclick="doAdvance('${jobId}','${nextSt}')">
+      ${icon} ${label} →
+    </button>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+// JOB ACTIONS
+// ─────────────────────────────────────────────
+window.setAct = function(id, m){
+  const el = document.getElementById('act_'+id);
+  if(el){ el.value = m; el.focus(); }
+};
+
+window.saveActMin = async function(id){
+  const el = document.getElementById('act_'+id);
+  if(!el) return;
+  const m = parseInt(el.value)||0;
+  if(m<=0){ toast('Add meg a perceket!','warning'); return; }
+  try {
+    const { sb } = await import('./js/api.js');
+    // Direct update via api
+    await advanceStatus(id, null, { actual_min: m });
+    toast(`✅ ${fmtHM(m)} mentve`, 'success');
+    await loadData();
+  } catch(e){
+    // Fallback: just update actual_min
+    try {
+      const { sb } = await import('./js/api.js');
+      const r = await window._sb.from('jobs').update({actual_min:m}).eq('id',id);
+      toast(`✅ ${fmtHM(m)} mentve`);
+      await loadData();
+    } catch(e2){ toast('Hiba: '+e2.message,'error'); }
+  }
+};
+
+window.doAdvance = async function(jobId, nextSt){
+  // If advancing to done, need actual_min
+  if(nextSt==='done'){
+    const el = document.getElementById('act_'+jobId);
+    const m = parseInt(el?.value)||0;
+    if(m<=0){ toast('Add meg a tényleges perceket!','warning',3000); return; }
+    try {
+      await advanceStatus(jobId, nextSt, { actual_min: m });
+    } catch(e){ toast('Hiba: '+e.message,'error'); return; }
+  } else {
+    try {
+      await advanceStatus(jobId, nextSt);
+    } catch(e){ toast('Hiba: '+e.message,'error'); return; }
+  }
+  const label = STATUS_FLOW[nextSt]?.label?.[_lang] || nextSt;
+  toast(`${label} ✅`);
+  await loadData();
+};
+
+// ─────────────────────────────────────────────
+// EXTRA WORK
+// ─────────────────────────────────────────────
+window.toggleExtraForm = function(){
+  document.getElementById('extraForm').classList.toggle('open');
+};
+
+window.selExBlk = function(b){
+  _exBlock = b;
+  document.getElementById('exDE').className = 'blk-btn'+(b==='DE'?' de-on':'');
+  document.getElementById('exDU').className = 'blk-btn'+(b==='DU'?' du-on':'');
+};
+
+window.setDur = function(m){
+  document.getElementById('exDur').value = m;
+  document.querySelectorAll('.dur-btn').forEach(b=>{
+    b.classList.toggle('on', parseInt(b.textContent)===m || b.textContent===m+'m');
+  });
+};
+
+window.saveExtra = async function(){
+  const plate    = document.getElementById('exPlate').value.trim().toUpperCase();
+  const client   = document.getElementById('exClient').value.trim();
+  const desc     = document.getElementById('exDesc').value.trim();
+  const dur      = parseInt(document.getElementById('exDur').value)||60;
+  const warranty = document.getElementById('exWarranty').checked;
+
+  if(!plate && !client){ toast('Rendszám vagy ügyfél kötelező!','warning'); return; }
+
+  const startTime = _exBlock==='DE' ? '08:00' : '14:00';
+
+  const payload = {
+    shop_id:      _shopId,
+    employee_id:  _worker.id,
+    department:   _worker.department || 'Technic',
+    plate,
+    client_name:  client,
+    description:  desc,
+    planned_min:  dur,
+    date:         _date,
+    start_time:   startTime,
+    block:        _exBlock,
+    status:       'assigned',
+    is_warranty:  warranty,
+    is_extra:     true,
+  };
+
+  try {
+    await saveJob(payload, null);
+    toast('⚡ Extra munka mentve!');
+    // Reset form
+    document.getElementById('exPlate').value = '';
+    document.getElementById('exClient').value = '';
+    document.getElementById('exDesc').value = '';
+    document.getElementById('exDur').value = '';
+    document.getElementById('exWarranty').checked = false;
+    document.getElementById('extraForm').classList.remove('open');
+    await loadData();
+  } catch(e){
+    toast('Hiba: '+e.message,'error');
+  }
+};
+
+// ─────────────────────────────────────────────
+// STATS TAB
+// ─────────────────────────────────────────────
+async function renderStats(){
+  // Calculate week range
+  const today = new Date(_date+'T00:00:00');
+  const dow   = today.getDay()||7;
+  const mon   = new Date(today); mon.setDate(today.getDate()-dow+1);
+
+  const days = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(mon); d.setDate(mon.getDate()+i);
+    days.push(d.toISOString().slice(0,10));
+  }
+
+  // Fetch jobs for whole week
+  const sb = window._sb;
+  if(!sb) return;
+  try {
+    const {data} = await sb.from('jobs')
+      .select('*')
+      .eq('employee_id', _worker.id)
+      .gte('date', days[0])
+      .lte('date', days[6]);
+
+    const weekJobs = data||[];
+    let weekMin = 0;
+    const rowsHtml = days.map(d=>{
+      const dJobs = weekJobs.filter(j=>j.date===d);
+      const planM  = dJobs.reduce((s,j)=>s+(j.planned_min||0),0);
+      const actM   = dJobs.reduce((s,j)=>s+(j.actual_min||j.planned_min||0),0);
+      weekMin += actM;
+      const eff = planM ? Math.round(actM/planM*100) : 0;
+      const effCol = eff>=100?'var(--green)':eff>=80?'var(--amber)':'var(--red)';
+      const isToday = d===todayStr();
+      return `<div class="period-row${isToday?' ':"'"}">
+        <div class="day" style="${isToday?'color:var(--red);font-weight:800':''}">${fmtDateShort(d,_lang)}</div>
+        <div class="vals">
+          <span><span class="v">${dJobs.length}</span><span class="l">munka</span></span>
+          <span><span class="v">${fmtH(planM)}</span><span class="l">terv</span></span>
+          <span><span class="v">${fmtH(actM)}</span><span class="l">tény</span></span>
+          <span><span class="v" style="color:${effCol}">${eff}%</span><span class="l">hatékonység</span></span>
+        </div>
+      </div>`;
+    }).join('');
+
+    const tgtMin = TGT_H*60*5; // 5 munkanap
+    const minMin = MIN_H*60*5;
+    const wkPct  = Math.min(100, weekMin/tgtMin*100);
+    const wkEff  = Math.round(weekMin/tgtMin*100);
+
+    document.getElementById('wkVal').textContent = fmtH(weekMin);
+    document.getElementById('wkVal').style.color = weekMin>=tgtMin?'var(--green)':weekMin>=minMin?'var(--amber)':'var(--red)';
+    document.getElementById('wkSub').textContent = `${fmtH(tgtMin)} heti célból`;
+    document.getElementById('wkEff').textContent = wkEff+'%';
+    document.getElementById('wkFill').style.width = wkPct+'%';
+    document.getElementById('wkFill').style.background = weekMin>=tgtMin?'var(--green)':weekMin>=minMin?'var(--amber)':'var(--red)';
+    document.getElementById('wkMinLbl').textContent = fmtH(minMin)+' min';
+    document.getElementById('wkMaxLbl').textContent = fmtH(tgtMin)+' cél';
+    document.getElementById('wkBadge').textContent = fmtH(weekMin);
+    document.getElementById('weekRows').innerHTML = rowsHtml;
+
+    // Month summary
+    const ym  = _date.slice(0,7);
+    const {data: mData} = await sb.from('jobs')
+      .select('date,planned_min,actual_min,status')
+      .eq('employee_id',_worker.id)
+      .gte('date', ym+'-01')
+      .lte('date', ym+'-31');
+
+    const mJobs = mData||[];
+    const mMin  = mJobs.reduce((s,j)=>s+(j.actual_min||j.planned_min||0),0);
+    const mPlan = mJobs.reduce((s,j)=>s+(j.planned_min||0),0);
+    const mEff  = mPlan ? Math.round(mMin/mPlan*100) : 0;
+
+    document.getElementById('moBadge').textContent = fmtH(mMin);
+    document.getElementById('monthRows').innerHTML = `
+      <div class="period-row">
+        <div class="day">Összes</div>
+        <div class="vals">
+          <span><span class="v">${mJobs.length}</span><span class="l">munka</span></span>
+          <span><span class="v">${fmtH(mPlan)}</span><span class="l">tervezett</span></span>
+          <span><span class="v">${fmtH(mMin)}</span><span class="l">teljesített</span></span>
+          <span><span class="v" style="color:${mEff>=100?'var(--green)':mEff>=80?'var(--amber)':'var(--red)'}">${mEff}%</span><span class="l">hatékonyság</span></span>
+        </div>
+      </div>
+      <div class="period-total">
+        <div class="day">BRUTTÓ BÉR</div>
+        <div style="font-size:18px;color:var(--amber)">
+          ${(mMin/60*(_worker.rate_per_hour||0)).toFixed(0)} RON
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-left:auto">${_worker.rate_per_hour||0} RON/h × ${fmtH(mMin)}</div>
+      </div>`;
+
+  } catch(e){
+    document.getElementById('weekRows').innerHTML = `<div style="color:var(--muted);padding:12px">Hiba: ${e.message}</div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// DOCS TAB
+// ─────────────────────────────────────────────
+async function renderDocs(){
+  const container = document.getElementById('docsContent');
+  if(!_docs.length){
+    container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Nincsenek dokumentumok</div>`;
+    return;
+  }
+
+  // Filter: shared + worker's own hats
+  const visible = _docs.filter(d=>
+    d.shared || d.type==='rule' || d.type==='directive' ||
+    (d.type==='hat' && d.employee_id===_worker.id)
+  );
+
+  const typeIcon = {rule:'📜',directive:'📌',hat:'🎩'};
+  const typeLabel = {rule:'Szabály',directive:'Irányelv',hat:'Kalap'};
+
+  container.innerHTML = visible.map(doc=>{
+    const isRead = _reads.has(doc.id);
+    return `<div class="doc-card">
+      <div class="doc-card-top">
+        <div class="doc-icon">${typeIcon[doc.type]||'📄'}</div>
+        <div style="flex:1;min-width:0">
+          <div class="doc-title">${doc.title||'—'}</div>
+          <div class="doc-meta">${typeLabel[doc.type]||doc.type} · ${doc.created_at?.slice(0,10)||''}</div>
+        </div>
+        ${isRead?`<span class="doc-read-badge">✓ Olvasva</span>`:''}
+      </div>
+      ${doc.content?`
+        <button class="doc-expand" onclick="toggleDoc('${doc.id}')">📖 Olvasás / bezárás</button>
+        <div class="doc-content" id="docBody_${doc.id}">${doc.content.replace(/\n/g,'<br>')}</div>
+      `:''}
+      ${!isRead?`<button style="width:100%;margin-top:8px;padding:10px;border-radius:8px;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.3);color:var(--green);font-size:13px;font-weight:700;min-height:40px" onclick="markRead('${doc.id}')">✓ Elolvastam</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+window.toggleDoc = function(id){
+  const el = document.getElementById('docBody_'+id);
+  if(el) el.classList.toggle('open');
+};
+
+window.markRead = async function(docId){
+  try {
+    await markDocRead(docId, _worker.id);
+    _reads.add(docId);
+    toast('✓ Olvasva jelölve');
+    renderDocs();
+  } catch(e){ toast('Hiba: '+e.message,'error'); }
+};
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+// Expose supabase for direct queries in stats
+import('./js/api.js').then(m=>{
+  window._sb = m.sb;
+});
+
+updateDateDisp();
+</script>
+</body>
+</html>
