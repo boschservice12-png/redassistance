@@ -6,7 +6,7 @@
 
 import { SB_URL, SB_KEY } from '../config.js';
 import { getState } from '../state.js';
-import { showToast } from '../components/toast.js';
+import { toast as showToast } from '../components/toast.js';
 import { t } from '../i18n.js';
 
 // ─────────────────────────────────────────────────────────────
