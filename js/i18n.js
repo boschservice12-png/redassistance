@@ -84,3 +84,17 @@ export function t(key) {
 // Globális (régi kóddal kompatibilis)
 window._t = t;
 window._lang = 'hu';
+export function setLang(lang) {
+  const { set } = window._stateModule || {};
+  localStorage.setItem('lang', lang);
+  window._lang = lang;
+  document.querySelectorAll('.lang-btn,.lang-mini').forEach(b => {
+    b.classList.toggle('on', b.textContent.trim().toLowerCase() === lang);
+  });
+}
+
+export const langs = ['hu', 'ro', 'en'];
+
+export function getLangCurrent() {
+  return localStorage.getItem('lang') || 'hu';
+}
