@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red Assistance PAZ — Verzió B (W2 teljes 6 lépés · W3 összegző)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   RED ASSISTANCE PAZ — DESIGN TOKENS
+   Koncepció: autós diagnosztikai műszerfal ("Oglinda realității").
+   Sötét cockpit téma + Red Assistance piros + a spec státusz-színei.
+   ============================================================ */
+:root{
+  /* Felületek */
+  --bg:#FAF8F5;            /* fő háttér (közel fekete, grafit árnyalat) */
+  --bg-2:#F4F1EC;          /* másodlagos háttér */
+  --surface:#FFFFFF;       /* kártya */
+  --surface-2:#F4F1EC;     /* emelt kártya / input */
+  --surface-3:#ECE7E0;     /* hover */
+  --line:rgba(15,20,26,.09);   /* hajszálvonal */
+  --line-2:rgba(15,20,26,.16);
+  /* Szöveg */
+  --text:#14181D;
+  --muted:#6B7480;
+  --faint:#9AA1AC;
+  /* Márka */
+  --brand:#E11D2E;         /* Red Assistance piros */
+  --brand-2:#B5160F;
+  /* Spec szerinti státusz-színek (Reality Index + kategóriák) */
+  --critic:#C8202E;        /* roșu / critic */
+  --slab:#C2540C;          /* portocaliu / slab */
+  --mediu:#A8780C;         /* galben / mediu */
+  --sanatos:#1F8A4B;       /* verde / sănătos */
+  --ridicat:#0E8576;       /* verde-albastru / foarte ridicat */
+  --verificare:#2A6FDB;    /* albastru / verificare date */
+  /* Tipográfia */
+  --display:"Geist",system-ui,sans-serif;
+  --head:"Geist",system-ui,sans-serif;
+  --body:"Geist",system-ui,sans-serif;
+  --mono:"Geist Mono",ui-monospace,monospace;
+  --r:14px;  /* radius */
+  --r-sm:9px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(circle at 1px 1px, rgba(15,20,26,.045) 1px, transparent 1px) 0 0/24px 24px,
+    radial-gradient(1100px 560px at 82% -10%, rgba(225,29,46,.05), transparent 60%),
+    var(--bg);
+  color:var(--text);font-family:var(--body);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;min-height:100vh;
+}
+h1,h2,h3,h4{font-family:var(--head);font-weight:600;margin:0;letter-spacing:.2px}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+.faint{color:var(--faint)}
+a{color:var(--brand-2);text-decoration:none}
+
+/* ---------- App shell ---------- */
+.appbar{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:18px;
+  padding:12px 22px;background:rgba(250,248,245,.85);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.logo{display:flex;align-items:center;gap:11px;font-family:var(--display);
+  font-weight:700;font-size:20px;letter-spacing:.5px;text-transform:uppercase}
+.logo .mark{width:30px;height:30px;border-radius:8px;background:var(--brand);
+  display:grid;place-items:center;box-shadow:0 0 0 1px rgba(15,20,26,.12),0 8px 22px rgba(225,29,46,.4)}
+.logo .mark svg{width:18px;height:18px}
+.logo small{font-family:var(--mono);font-size:10px;color:var(--muted);
+  letter-spacing:2px;font-weight:500}
+.nav{display:flex;gap:4px;margin-left:8px}
+.nav button{background:transparent;border:1px solid transparent;color:var(--muted);
+  font-family:var(--head);font-weight:500;font-size:13px;padding:8px 14px;border-radius:9px;cursor:pointer;letter-spacing:.3px}
+.nav button:hover{color:var(--text);background:var(--surface)}
+.nav button.active{color:var(--text);background:var(--surface-2);border-color:var(--line-2)}
+.spacer{flex:1}
+.lang{display:flex;border:1px solid var(--line-2);border-radius:9px;overflow:hidden}
+.lang button{background:var(--surface);border:0;color:var(--muted);font-family:var(--mono);
+  font-size:12px;font-weight:700;padding:7px 11px;cursor:pointer;letter-spacing:1px}
+.lang button.active{background:var(--brand);color:#fff}
+.btn{font-family:var(--head);font-weight:600;font-size:13px;border-radius:10px;
+  padding:9px 16px;cursor:pointer;border:1px solid var(--line-2);background:var(--surface-2);
+  color:var(--text);letter-spacing:.3px;transition:.12s}
+.btn:hover{background:var(--surface-3)}
+.btn.primary{background:var(--brand);border-color:transparent;color:#fff;
+  box-shadow:0 8px 22px rgba(225,29,46,.32)}
+.btn.primary:hover{background:var(--brand-2)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:6px 11px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+.wrap{max-width:1320px;margin:0 auto;padding:22px}
+
+/* ---------- Stepper ---------- */
+.stepper{display:flex;gap:8px;margin:6px 0 20px;flex-wrap:wrap}
+.step{flex:1;min-width:150px;background:var(--surface);border:1px solid var(--line);
+  border-radius:12px;padding:11px 13px;cursor:pointer;position:relative;overflow:hidden;transition:.12s}
+.step:hover{border-color:var(--line-2)}
+.step.active{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.step .n{font-family:var(--mono);font-size:11px;color:var(--faint);font-weight:700}
+.step.done .n{color:var(--sanatos)}
+.step .t{font-family:var(--head);font-weight:600;font-size:13.5px;margin-top:3px}
+.step .s{font-size:10.5px;color:var(--muted);margin-top:2px;font-family:var(--mono);letter-spacing:.3px}
+.step.active .t{color:var(--text)}
+
+/* ---------- Layout grid ---------- */
+.grid{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
+@media(max-width:1080px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.card + .card{margin-top:16px}
+.card h2{font-size:18px;display:flex;align-items:center;gap:9px}
+.card h2 .pill{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1px;
+  color:var(--muted);border:1px solid var(--line-2);border-radius:6px;padding:3px 7px}
+.card .lead-sub{color:var(--muted);font-size:13px;margin:4px 0 16px}
+.section-h{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--brand-2);margin:22px 0 12px;font-weight:700;display:flex;align-items:center;gap:10px}
+.section-h::before{content:"";width:14px;height:2px;background:var(--brand)}
+.section-h:first-child{margin-top:0}
+
+/* ---------- Forms ---------- */
+.fields{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+.fields.three{grid-template-columns:repeat(3,1fr)}
+@media(max-width:640px){.fields,.fields.three{grid-template-columns:1fr}}
+.f{display:flex;flex-direction:column;gap:5px}
+.f.span2{grid-column:span 2}
+.f label{font-size:11.5px;color:var(--muted);font-weight:500;letter-spacing:.2px}
+.f label .req{color:var(--brand-2)}
+.f input,.f select{background:var(--surface-2);border:1px solid var(--line-2);border-radius:9px;
+  color:var(--text);padding:9px 11px;font-family:var(--body);font-size:13.5px;outline:none;transition:.1s}
+.f input:focus,.f select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(225,29,46,.15)}
+.f input.num{font-family:var(--mono);font-weight:500}
+.f .hint{font-size:10.5px;color:var(--faint)}
+/* yes/no toggle */
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--surface-2);border:1px solid var(--line-2);border-radius:9px;padding:9px 12px}
+.toggle span{font-size:12.5px}
+.switch{width:44px;height:24px;border-radius:20px;background:var(--surface-3);position:relative;
+  cursor:pointer;border:1px solid var(--line-2);flex:none;transition:.15s}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+  background:var(--muted);transition:.15s}
+.switch.on{background:rgba(47,179,68,.25);border-color:var(--sanatos)}
+.switch.on::after{left:22px;background:var(--sanatos)}
+.q-list{display:grid;gap:9px}
+.q-list .toggle span small{display:block;color:var(--faint);font-size:10.5px;font-family:var(--mono)}
+
+input[type=range]{-webkit-appearance:none;appearance:none;height:5px;border-radius:5px;
+  background:var(--surface-3);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;
+  background:var(--brand);cursor:pointer;box-shadow:0 0 0 4px rgba(225,29,46,.2)}
+
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-actions{display:flex;justify-content:space-between;margin-top:20px;gap:10px;padding-top:18px;border-top:1px solid var(--line)}
+
+/* ---------- Alerts ---------- */
+.alert{border-radius:11px;padding:12px 14px;font-size:12.5px;display:flex;gap:10px;align-items:flex-start;margin:12px 0}
+.alert b{font-family:var(--head)}
+.alert.err{background:rgba(229,72,77,.1);border:1px solid rgba(229,72,77,.4);color:var(--critic)}
+.alert.warn{background:rgba(242,129,29,.1);border:1px solid rgba(242,129,29,.4);color:var(--slab)}
+.alert.info{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.4);color:var(--verificare)}
+.alert.ok{background:rgba(47,179,68,.1);border:1px solid rgba(47,179,68,.4);color:var(--sanatos)}
+.alert .ic{font-family:var(--mono);font-weight:700}
+
+/* ---------- Right rail readout ---------- */
+.rail{position:sticky;top:78px}
+.gauge-card{text-align:center}
+.gauge-wrap{position:relative;width:280px;margin:6px auto 0}
+.gauge-val{position:absolute;left:0;right:0;top:96px;text-align:center}
+.gauge-val .big{font-family:var(--display);font-weight:700;font-size:54px;line-height:1}
+.gauge-val .lbl{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.gauge-band{font-family:var(--head);font-weight:700;font-size:15px;margin-top:-6px}
+
+.readout{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-top:14px}
+.ro-item{display:flex;justify-content:space-between;align-items:baseline;background:var(--surface);padding:9px 12px;gap:10px}
+.ro-item .k{font-size:11.5px;color:var(--muted)}
+.ro-item .v{font-family:var(--mono);font-weight:700;font-size:13px}
+.ro-item .v.hl{color:var(--brand-2)}
+
+.score-row{display:flex;gap:12px;margin-top:14px}
+.ring-card{flex:1;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.ring-card .t{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+.ring{position:relative;width:96px;height:96px;margin:8px auto 4px}
+.ring .pct{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:30px}
+.cat-badge{display:inline-block;font-family:var(--head);font-weight:700;font-size:13px;padding:6px 12px;
+  border-radius:8px;margin-top:8px;border:1px solid currentColor}
+.statusline{margin-top:14px;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+
+/* ---------- PAZ breakdown bars ---------- */
+.bd{display:grid;gap:8px;margin-top:6px}
+.bd-item .bd-top{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px}
+.bd-item .bd-top .lbl{color:var(--muted)}
+.bd-item .bd-top .num{font-family:var(--mono);font-weight:700}
+.bar{height:7px;border-radius:5px;background:var(--surface-3);overflow:hidden}
+.bar > i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--brand),var(--brand-2))}
+
+/* ---------- Flags / chips ---------- */
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}
+.chip{font-family:var(--mono);font-size:11px;padding:5px 9px;border-radius:7px;border:1px solid var(--line-2);
+  background:var(--surface-2);color:var(--muted)}
+.chip.danger{border-color:rgba(229,72,77,.5);color:var(--critic);background:rgba(229,72,77,.08)}
+
+/* ---------- Dashboard ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+@media(max-width:880px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px}
+.kpi .t{font-family:var(--mono);font-size:10px;letter-spacing:1.4px;color:var(--muted);text-transform:uppercase}
+.kpi .v{font-family:var(--display);font-weight:700;font-size:34px;line-height:1.1;margin-top:6px}
+.kpi .v small{font-size:14px;color:var(--muted);font-family:var(--mono)}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--surface-2)}
+tr:hover td{background:var(--surface-2)}
+td .tag{font-family:var(--mono);font-size:10.5px;padding:3px 7px;border-radius:6px;border:1px solid currentColor}
+.dist{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+@media(max-width:740px){.dist{grid-template-columns:1fr}}
+.dist .row-bar{display:flex;align-items:center;gap:10px;margin:7px 0}
+.dist .row-bar .nm{width:140px;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.dist .row-bar .bar{flex:1}
+.dist .row-bar .ct{font-family:var(--mono);font-weight:700;font-size:12px;width:34px;text-align:right}
+
+/* ---------- Lead picker ---------- */
+.leadbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.leadbar select{min-width:240px}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+
+/* ---------- Landing (Reality Check hero) ---------- */
+.hero{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--line);
+  border-radius:18px;padding:34px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 50% -40%,rgba(225,29,46,.18),transparent 70%)}
+.hero > *{position:relative}
+.hero .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--brand-2);text-transform:uppercase}
+.hero h1{font-family:var(--display);font-size:40px;margin:10px 0;max-width:680px;margin-inline:auto;line-height:1.05}
+.hero p{color:var(--muted);max-width:560px;margin:0 auto 22px;font-size:15px}
+
+/* ---------- Offer / report blocks ---------- */
+.report{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:12px}
+.report h3{font-family:var(--head);font-size:15px;margin-bottom:6px;color:var(--text)}
+.report ol,.report ul{margin:6px 0 0;padding-left:20px;color:var(--text)}
+.report li{margin:4px 0;font-size:13px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.kv div{font-size:12.5px}
+.kv b{color:var(--muted);font-weight:500}
+
+/* print */
+@media print{
+  .appbar,.stepper,.nav-actions,.leadbar,.rail .score-row,#printHide,.btn{display:none!important}
+  body{background:#fff;color:#000}
+  .card,.report{border-color:#ccc;background:#fff;color:#000;break-inside:avoid}
+  .wrap{max-width:none}
+}
+/* ---------- Background stats (appbar) ---------- */
+.bgstats{display:flex;gap:7px;align-items:center}
+.bgstat{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface-2);
+  border:1px solid var(--line);border-radius:8px;padding:5px 9px;display:flex;gap:5px;align-items:center}
+.bgstat b{font-family:var(--display);font-size:15px;color:var(--text);font-weight:700;line-height:1}
+.bgstat.ok b{color:var(--sanatos)}
+@media(max-width:980px){.bgstats{display:none}}
+/* landing funnel */
+.fnl{max-width:560px;margin:18px auto 0}
+.fnl .mirror{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.mcard{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.mcard .ml{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.mcard .mv{font-family:var(--display);font-weight:700;font-size:26px;margin-top:4px}
+.chan{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.chan span{font-family:var(--mono);font-size:11px;color:var(--faint);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+/* result summary */
+.rsum{display:grid;gap:9px;margin-top:6px}
+.rsum .rline{display:flex;justify-content:space-between;align-items:baseline;background:var(--surface-2);
+  border:1px solid var(--line);border-radius:10px;padding:11px 14px}
+.rsum .rk{font-size:12.5px;color:var(--muted)} .rsum .rv{font-family:var(--mono);font-weight:700;font-size:14px}
+/* ---------- Döntés: verdikt + 3 feltétel ---------- */
+.verdict{border:1.5px solid;border-radius:12px;padding:14px 16px;text-align:center;margin:6px 0 14px}
+.verdict .vbig{font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:1px;line-height:1}
+.verdict .vsize{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px}
+.conds{display:grid;gap:9px;margin-bottom:14px}
+.cond{display:flex;align-items:center;gap:11px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.cond .ci{font-family:var(--mono);font-weight:700;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:13px}
+.cond.ok .ci{background:rgba(47,179,68,.18);color:var(--sanatos)}
+.cond.no .ci{background:rgba(229,72,77,.16);color:var(--critic)}
+.cond b{font-size:13.5px}.cond small{display:block;color:var(--faint);font-size:11px;font-family:var(--mono);margin-top:2px}
+.cond.no b{color:var(--critic)}
+.hide{display:none!important}
+.hub-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-sm);margin-bottom:8px;cursor:pointer;background:var(--surface-2);transition:border-color .12s}
+.hub-row:hover{border-color:var(--brand)}
+.hub-metrics{display:flex;gap:10px;align-items:center;font-family:var(--mono);font-size:13px;white-space:nowrap}
+@media(max-width:640px){.hub-metrics{font-size:11px;gap:6px}}
+.tri{display:flex;gap:6px}
+.trib{width:34px;height:30px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--faint);font-size:14px;cursor:pointer;line-height:1;transition:all .12s}
+.trib:hover{color:var(--text)}
+.trib.y.on{background:rgba(47,179,68,.18);border-color:var(--sanatos);color:var(--sanatos)}
+.trib.n.on{background:rgba(229,72,77,.16);border-color:var(--critic);color:var(--critic)}
+.tri-row.pending{border-left:2px solid var(--mediu);padding-left:10px}
+.tri-row.pending>span:first-child::after{content:" ?";color:var(--mediu);font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<!-- ============================ APP BAR ============================ -->
+<div class="appbar">
+  <div class="logo">
+    <span class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 4.5-3.2 8-8 10-4.8-2-8-5.5-8-10V6l8-4z" stroke="#fff" stroke-width="1.6"/><path d="M8.5 12l2.3 2.3L15.5 9.6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span>Red Assistance <span style="color:var(--brand-2)">PAZ</span><br><small data-i="brandsub">ZONA DE AUDIT PARTENER</small></span>
+  </div>
+  <div class="nav" id="nav">
+    <button data-view="landing" class="active" data-i="nav_landing">Landing</button>
+    <button data-view="audit" data-i="nav_audit">Audit</button>
+    <button data-view="result" data-i="nav_result">Rezultat</button>
+    <button data-view="dashboard" data-i="nav_dash">Dashboard</button>
+    <button data-view="top1000" data-i="nav_top">Top 1000</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="bgstats" id="bgstats"></div>
+  <button class="btn ghost sm" id="loadTest" data-i="load_test">Date demo</button>
+  <div class="lang" id="lang">
+    <button data-lang="ro" class="active">RO</button>
+    <button data-lang="hu">HU</button>
+  </div>
+</div>
+
+<div class="wrap" id="root"></div>
+
+<script>
+"use strict";
+/* ================================================================
+   RED ASSISTANCE PAZ — Reality Mirror & Audit Sales System
+   Egyetlen önálló fájl. Backend nélkül fut. localStorage mentés.
+   Minden számítás külön, kommentelt függvényben (lásd spec 19.).
+   ================================================================ */
+
+/* ---------------- 0) KONFIG / ALAPÉRTÉKEK (spec 5.) ------------- */
+const DEFAULTS = {
+  parts_percent: 60,
+  labor_percent: 40,
+  recovery_factor_percent: 60,
+  working_days_per_month: 22,
+  target_billable_hours_per_day_per_productive: 6.5,
+  target_billable_hours_per_day_per_post: 6.5,
+};
+const STORAGE_KEY = "redassistance-paz-v1";
+const INBOX_KEY   = "ra_paz_inbox";   /* a Reality Index ide írja a borítékot */
+
+/* A 13 belső workflow-státusz (spec 1.) */
+const FLOW = ["Reality Check Started","Audit Requested","Audit Completed","Decision Needed",
+  "Go/Conditional/NoGo/Verification","Offer Created","Offer Sent","Sales Negotiation",
+  "Accepted/Rejected/Hold","Partner Visit Scheduled","Onboarding Started","Pilot Active",
+  "Active Red Assistance Partner"];
+
+/* ---------------- 1) STORAGE absztrakció ----------------------- */
+/* localStorage-t használ (valós deploy / Netlify), de ha nem elérhető
+   (pl. előnézet-sandbox), memóriába esik vissza — nem omlik össze. */
+const safeStore = (()=>{
+  let mem = {};
+  let ok = false;
+  try{ const k="__t"; localStorage.setItem(k,"1"); localStorage.removeItem(k); ok=true; }catch(e){ ok=false; }
+  return {
+    get(k){ try{ return ok ? localStorage.getItem(k) : (mem[k]??null); }catch(e){ return mem[k]??null; } },
+    set(k,v){ try{ ok ? localStorage.setItem(k,v) : (mem[k]=v); }catch(e){ mem[k]=v; } }
+  };
+})();
+
+/* ---------------- 2) ÁLLAPOT ----------------------------------- */
+let state = { leads:[], currentId:null, view:"landing", step:1, lang:"ro",
+  landing:{turnover:200000, rate:180, people:6, posts:6, labor:40} };
+
+/* ====== ABLAK-ELRENDEZÉS — A vagy B (a két demó csak ebben tér el) ======
+   A: W2=Audit (1–3), W3=Eredmény + Értékesítés (4–6)
+   B: W2=teljes 6 lépés, W3=eredmény-összegző kártya */
+const LAYOUT = "B";
+const WIN = LAYOUT==="A" ? { audit:[1,2,3], result:[4,5,6] } : { audit:[1,2,3,4,5,6], result:[] };
+function winForStep(n){ return WIN.result.includes(n) ? "result" : "audit"; }
+function setStep(n){ state.step=n; if(LAYOUT==="A" && (state.view==="audit"||state.view==="result")) state.view=winForStep(n); }
+function routeWindow(){
+  if(LAYOUT!=="A") return;
+  if(state.view==="audit"  && !WIN.audit.includes(state.step))  state.step=WIN.audit[0];
+  if(state.view==="result" && !WIN.result.includes(state.step)) state.step=WIN.result[0];
+}
+
+function persist(){ safeStore.set(STORAGE_KEY, JSON.stringify({leads:state.leads, lang:state.lang})); }
+function loadState(){
+  try{
+    const raw = safeStore.get(STORAGE_KEY);
+    if(raw){ const o=JSON.parse(raw); state.leads=o.leads||[]; state.lang=o.lang||"ro"; }
+  }catch(e){}
+  if(state.leads.length) state.currentId = state.leads[0].id;
+}
+const currentLead = ()=> state.leads.find(l=>l.id===state.currentId)||null;
+
+/* ---------------- 3) LEAD GYÁR (adatmodell) -------------------- */
+function createLead(){
+  const id = "L"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const now = new Date().toISOString();
+  const L = {
+    id, createdAt:now, updatedAt:now,
+    /* cégadatok (spec 3.) */
+    service_name:"", legal_company_name:"", fiscal_code:"", city:"", county:"",
+    address:"", website:"", phone:"", email:"", contact_person:"", owner_name:"",
+    decision_maker:"", network_affiliation:"independent", service_type:"mecanică generală",
+    /* működési alapadatok (spec 4.) */
+    work_posts:0, productive_people:0, mechanics:0, diagnosticians:0, tire_people:0,
+    body_people:0, paint_people:0, reception_people:0, admin_people:0,
+    /* rendszer-audit kérdések — null = MÉG NEM AUDITÁLT (pending); true = van; false = hiányzik */
+    has_parts_processor:null, has_followup_responsible:null, has_scheduling_responsible:null,
+    has_daily_production_report:null, has_offer_tracking:null, has_callback_system:null,
+    has_digital_customer_db:null, has_digital_service_history:null, has_health_report:null,
+    has_quality_control:null, has_digital_communication:null, owner_commits_pilot:null,
+    accepts_report:null, accepts_standard:null,
+    /* pénzügyi / termelési inputok (spec 5.) */
+    monthly_turnover_total:0, external_income_exists:false, external_income_percent:0,
+    parts_percent:DEFAULTS.parts_percent, labor_percent:DEFAULTS.labor_percent,
+    hourly_rate:0, working_days_per_month:DEFAULTS.working_days_per_month,
+    target_billable_hours_per_day_per_productive:DEFAULTS.target_billable_hours_per_day_per_productive,
+    target_billable_hours_per_day_per_post:DEFAULTS.target_billable_hours_per_day_per_post,
+    recovery_factor_percent:DEFAULTS.recovery_factor_percent,
+    /* Data Confidence igazolások (prompt 10.) — nem érinti a sell-logikát, csak adatminőség */
+    dc_turnover_verified:false, dc_rate_verified:false, dc_productive_verified:false,
+    dc_posts_verified:false, dc_billing_visible:false, dc_auditor_checked:false,
+    /* auditor inputok (spec 10. + Top1000 spec 15.) — 0..100 skála */
+    auditor_name:"", audit_date:"", local_influence:50, network_influence_score:30,
+    reference_value:50, growth_potential:50,
+    paz_override:null, override_reason:"", override_log:[],
+    /* döntés (spec 11.) */
+    decision:"", admin_override:false,
+    /* ajánlat (spec 12.) */
+    offer_type:"", monthly_fee:0, package:"", offer_notes:"", offer_created:false, offer_sent:false,
+    /* értékesítés (spec 13.) */
+    sales_status:"", next_step:"", next_step_date:"", responsible_person:"",
+    main_objection:"", decision_maker_status:"", expected_close_date:"",
+    /* látogatás (spec 14.) */
+    visit:{v1:false,v2:false,v3:false,v4:false,v5:false,v6:false,v7:false,v8:false},
+    visit_date:"", visit_status:"",
+    /* pilot eredmény (R2 — KPI-híd, Manual 27.) — string tárolás, num() olvasáskor */
+    pilot_contacted:"", pilot_responded:"", pilot_scheduled:"", pilot_jobs:"", pilot_revenue:"",
+    /* workflow */
+    ri_source:"", ri_ref:null, ri_turnover_derived:false, main_pain:"",
+    lead_status:"Reality Check Started",
+    history:[{t:now, s:"Reality Check Started"}]
+  };
+  return L;
+}
+
+/* ---- VARRAT: Reality Index boríték → PAZ lead (előtöltés) ---- */
+function leadFromEnvelope(env){
+  const L = createLead();
+  const r = (env && env.reality) || {};
+  const n = v => (v==null || isNaN(v)) ? undefined : +v;
+  const set = (k,v)=>{ if(v!==undefined) L[k]=v; };
+
+  /* --- kapcsolat + azonosítás (a Tükör csak e-mailt ismer) --- */
+  const mail = env.lead_email||"";
+  set("email", mail); set("contact_person", mail);
+  if(mail) L.service_name = (state.lang==="ro"?"Lead RI · ":"RI lead · ")+mail;  /* picker-azonosító, az auditor átírja */
+
+  /* --- kapacitás --- */
+  set("productive_people", n(r.oameni_productivi));
+  set("work_posts",        n(r.posturi));
+
+  /* --- pénzügyi struktúra (forgalom ELŐTT, hogy a hányadok megvegyenek) --- */
+  if(r.structura_manopera_pct!=null && r.structura_piese_pct!=null){
+    L.labor_percent=+r.structura_manopera_pct; L.parts_percent=+r.structura_piese_pct;
+  }
+  if(r.alte_venituri_pct!=null && +r.alte_venituri_pct>0){
+    L.external_income_exists=true; L.external_income_percent=+r.alte_venituri_pct;
+  }
+  set("hourly_rate", n(r.tarif_ora));
+
+  /* --- forgalom: ismert → közvetlen; ismeretlen, de van havi manopera → visszaszámolt
+         (a PAZ modell forgalom-alapú: labor_revenue = forgalom × (1-alte%) × manopera%;
+          így a labor_revenue = a Tükör manoperája, és a step 1 pénzügyi kép NEM marad üres) --- */
+  const turn = n(r.cifra_afaceri), mano = n(r.manopera_lunara);
+  const laborFrac = (num(L.labor_percent)||0)/100;
+  const extFrac   = 1 - (num(L.external_income_percent)||0)/100;
+  if(!r.cifra_necunoscuta && turn!==undefined){
+    L.monthly_turnover_total = turn;
+  } else if(mano!==undefined && laborFrac>0 && extFrac>0){
+    L.monthly_turnover_total = Math.round(mano/laborFrac/extFrac);
+    L.ri_turnover_derived = true;   /* jelölés: forgalom a manoperából visszaszámolva */
+  }
+
+  /* --- diagnózis-input + referencia --- */
+  L.main_pain = r.durere_principala || "";
+  L.ri_source = (env.ts||"")+"|"+(mail);
+  L.ri_ref = { util:r.utilizare_pct??null, X:r.X_productie_pierduta??null, Xan:r.X_pierdut_anual??null,
+    Z:r.Z_recuperabil??null, lost_h:r.ore_pierdute_luna??null, tier:r.fit_tier??null,
+    pain:r.durere_principala??null, mano:mano??null, sistem:r.sistem_actual??null, zona:r.zona_productie??null };
+  L.lead_status = (env.paz_status==="filtered") ? "Reality Check Started" : "Audit Requested";
+  L.history = [{t:L.createdAt, s:"Reality Index → "+L.lead_status}];
+  return L;
+}
+function drainInbox(){
+  let inbox=[]; try{ inbox = JSON.parse(safeStore.get(INBOX_KEY)||"[]"); }catch(e){ inbox=[]; }
+  let added=0;
+  inbox.forEach(env=>{
+    const sid = (env.ts||"")+"|"+(env.lead_email||"");
+    if(!state.leads.some(l=>l.ri_source===sid)){ state.leads.unshift(leadFromEnvelope(env)); added++; }
+  });
+  if(added){ state.currentId = state.leads[0].id; persist(); }
+  return added;
+}
+function setStatus(L, s){
+  if(L.lead_status!==s){ L.lead_status=s; L.history.push({t:new Date().toISOString(), s}); }
+  L.updatedAt=new Date().toISOString();
+}
+
+/* ================================================================
+   4) SZÁMÍTÁSI FÜGGVÉNYEK (spec 6., 7., 8., 9., 15.)
+   ================================================================ */
+
+/* validateAuditData() — kemény validációk (spec 5., 6.) */
+function validateAuditData(L){
+  const errs=[];
+  if(round1(L.parts_percent+L.labor_percent)!==100)
+    errs.push({field:"parts", msg:t("err_pct")});
+  if(num(L.productive_people)<=0) errs.push({field:"productive", msg:t("err_prod")});
+  if(num(L.hourly_rate)<=0) errs.push({field:"rate", msg:t("err_rate")});
+  return {valid:errs.length===0, errs};
+}
+
+/* calculateDataConfidence() — adatbiztonsági pont 0..100 (prompt 10.)
+   KÜLÖN mutató: NEM módosítja a sell-logikát, csak adatminőséget jelez.
+   forgalom 20 + óradíj 15 + produktív 15 + poszt 15 + riport látható 20 + auditor 15 */
+function calculateDataConfidence(L){
+  let s=0;
+  if(L.dc_turnover_verified)   s+=20;
+  if(L.dc_rate_verified)       s+=15;
+  if(L.dc_productive_verified) s+=15;
+  if(L.dc_posts_verified)      s+=15;
+  if(L.dc_billing_visible)     s+=20;
+  if(L.dc_auditor_checked)     s+=15;
+  let band;
+  if(s>=80) band={key:"strong", ro:"Încredere puternică", hu:"Erős adatbiztonság", color:var_("--sanatos")};
+  else if(s>=60) band={key:"medium", ro:"Încredere medie", hu:"Közepes adatbiztonság", color:var_("--mediu")};
+  else if(s>=40) band={key:"weak", ro:"Încredere slabă", hu:"Gyenge adatbiztonság", color:var_("--slab")};
+  else band={key:"unreliable", ro:"Date nesigure", hu:"Nem megbízható adat", color:var_("--critic")};
+  return { score:s, band, low:s<40 };
+}
+
+/* ===== VISSZANYERÉSI VALÓSZÍNŰSÉG — mindig valószínűségben, nem fix arányban.
+   P = 0,49 (biztos padló) + 0,51 × M, ahol M a rekurencia-érettség (0..1).
+   M = a megerősítetten meglévő rekurencia-rendszerek aránya (Health Report,
+   digitális szerviztörténet, visszahívási rendszer). A 49% fölötti rész a
+   rekurencia kiépítéséből és a használat begyakorlásából jön — 100%-ig.
+   Csak a VESZTESÉGRE alkalmazzuk, sosem a teljes kapacitásra. Nem csodaszer. */
+const RECUR_FLAGS = ["has_health_report","has_digital_service_history","has_callback_system"];
+function recoveryProbability(L){
+  const present = RECUR_FLAGS.filter(f=>L[f]===true).length;   /* csak megerősített ✓ */
+  const M = present / RECUR_FLAGS.length;                       /* 0..1 */
+  const P = 0.49 + 0.51*M;                                      /* 0,49 … 1,00 */
+  return { M, P, present, total:RECUR_FLAGS.length, floor:0.49 };
+}
+function recoveryField(L){
+  const rp=recoveryProbability(L), ro=state.lang==="ro";
+  const val=(ro?"sigur 49% → ":"biztos 49% → ")+Math.round(rp.P*100)+"%  ·  M="+rp.present+"/"+rp.total;
+  return `<div class="f"><label>${ro?"Probabilitate recuperare (auto)":"Visszanyerési valószínűség (auto)"}</label>
+    <input type="text" value="${esc(val)}" disabled></div>`;
+}
+/* calculateProductionReality() — termelési realitás (spec 6.) */
+function calculateProductionReality(L){
+  const externalPct = L.external_income_exists ? num(L.external_income_percent) : 0;
+  const service_turnover = num(L.monthly_turnover_total) * (1 - externalPct/100);
+  const parts_revenue   = service_turnover * num(L.parts_percent)/100;
+  const labor_revenue   = service_turnover * num(L.labor_percent)/100;
+  const rate            = num(L.hourly_rate);
+  const implied_labor_hours = rate>0 ? labor_revenue/rate : 0;
+  const capacity_by_people  = num(L.productive_people)*num(L.working_days_per_month)*num(L.target_billable_hours_per_day_per_productive);
+  const capacity_by_posts   = num(L.work_posts)*num(L.working_days_per_month)*num(L.target_billable_hours_per_day_per_post);
+  const effective_capacity  = Math.min(capacity_by_people||Infinity, capacity_by_posts||Infinity);
+  const eff = isFinite(effective_capacity)?effective_capacity:0;
+  const utilization_rate = eff>0 ? implied_labor_hours/eff*100 : 0;
+  const lost_hours = Math.max(eff - implied_labor_hours, 0);
+  const lost_labor_potential = lost_hours*rate;
+  const rp = recoveryProbability(L);
+  const realistic_recoverable = lost_labor_potential*rp.P;          /* P = 0,49 + 0,51·M */
+  const recoverable_certain   = lost_labor_potential*rp.floor;      /* biztos 49% padló */
+  const admin_ratio     = num(L.productive_people)>0 ? num(L.admin_people)/num(L.productive_people) : 0;
+  const reception_ratio = num(L.productive_people)>0 ? num(L.reception_people)/num(L.productive_people) : 0;
+  /* adatkonzisztencia: >110% kihasználtság => Data inconsistent (spec 6.) */
+  const reality_status = utilization_rate>110 ? "Data inconsistent" : "OK";
+  return { service_turnover, parts_revenue, labor_revenue, implied_labor_hours,
+    capacity_by_people, capacity_by_posts, effective_capacity:eff, utilization_rate,
+    lost_hours, lost_labor_potential, realistic_recoverable, recoverable_certain,
+    recovery_P:rp.P, recovery_M:rp.M, admin_ratio, reception_ratio,
+    reality_status };
+}
+
+/* realityBand() — Reality Index sávok + színek (spec 7.) */
+function realityBand(u){
+  if(u<=50)  return {key:"critic",     color:var_("--critic"),     ro:"Critic",          hu:"Kritikus"};
+  if(u<=70)  return {key:"slab",       color:var_("--slab"),       ro:"Slab",            hu:"Gyenge"};
+  if(u<=85)  return {key:"mediu",      color:var_("--mediu"),      ro:"Mediu",           hu:"Közepes"};
+  if(u<=100) return {key:"sanatos",    color:var_("--sanatos"),    ro:"Sănătos",         hu:"Egészséges"};
+  if(u<=110) return {key:"ridicat",    color:var_("--ridicat"),    ro:"Foarte ridicat",  hu:"Nagyon magas"};
+  return            {key:"verificare", color:var_("--verificare"), ro:"Verificare date", hu:"Adatellenőrzés"};
+}
+
+/* calculatePAZScore() — 0..100 PAZ pont, 7 kategória A..G (spec 8.)
+   Minden alpont auditálható; a kommentek mutatják a logikát. */
+function calculatePAZScore(L){
+  const c = calculateProductionReality(L);
+  const consistent = c.reality_status==="OK";
+
+  /* A) Kapacitás — 20p: posztok(5)+productivi(5)+kapacitás(4)+kihasználtság(3)+konzisztencia(3) */
+  let A=0;
+  A += scaleStep(L.work_posts,        [[8,5],[5,4],[3,2.5],[1,1]]);
+  A += scaleStep(L.productive_people, [[8,5],[5,4],[3,2.5],[1,1]]);
+  A += scaleStep(c.effective_capacity,[[1200,4],[800,3],[400,2],[1,1]]);
+  A += (c.utilization_rate>110 ? 0 : c.utilization_rate>0 ? 3 : 1.5); /* alacsony hatékonyság NEM büntetés (az a fájdalom = a termék) — csak az adatellentmondás (>110%) von le */
+  A += consistent?3:0;
+
+  /* B) Személyzeti szerkezet — 15p: recepció(4)+admin(3)+alkatrész feldolgozó(4)+prod/admin arány(4) */
+  let B=0;
+  B += num(L.reception_people)>0 ? 4 : 0;
+  B += num(L.admin_people)>0 ? (c.admin_ratio<=0.4?3:1.5) : 1;          /* lean admin a jobb */
+  B += L.has_parts_processor ? 4 : 0;
+  const prodPerAdmin = num(L.admin_people)>0 ? num(L.productive_people)/num(L.admin_people) : (num(L.productive_people)>0?6:0);
+  B += prodPerAdmin>=4?4 : prodPerAdmin>=2?3 : prodPerAdmin>=1?1.5 : 0;
+
+  /* C) Ügyfélfolyamat — 15p: 5 elem × 3 (spec 8/C) */
+  let C=0;
+  C += L.has_scheduling_responsible?3:0;
+  C += L.has_offer_tracking?3:0;
+  C += L.has_followup_responsible?3:0;
+  C += L.has_health_report?3:0;
+  C += L.has_quality_control?3:0;
+
+  /* D) Digitális érettség — 15p: 5 elem × 3 (spec 8/D) */
+  let D=0;
+  D += L.has_digital_customer_db?3:0;
+  D += L.has_daily_production_report?3:0;       /* digitális munkalap proxy */
+  D += L.has_callback_system?3:0;               /* emlékeztető rendszer */
+  D += L.has_digital_communication?3:0;         /* WhatsApp/email */
+  D += L.has_digital_service_history?3:0;
+
+  /* E) Pénzügyi realitás — 15p: forgalom(3)+külső bevétel leválasztva(3)+arány(3)+óradíj(3)+konzisztencia(3) */
+  let E=0;
+  E += num(L.monthly_turnover_total)>0 ? 3 : 0;
+  E += L.external_income_exists ? (num(L.external_income_percent)>0?2:0) : 3;
+  const lp=num(L.labor_percent);
+  E += (lp>=30&&lp<=60)?3 : (lp>=20&&lp<=70)?1.5 : 0.5;
+  const hr=num(L.hourly_rate);
+  E += hr>=150?3 : hr>=100?2 : hr>=50?1 : hr>0?0.5:0;
+  E += consistent?3:0;
+
+  /* F) Vezetői akarat — 10p: döntéshozó(3)+pilot(4)+riport(1.5)+standard(1.5) */
+  let F=0;
+  F += (L.decision_maker&&L.decision_maker.trim())?3:0;
+  F += L.owner_commits_pilot?4:0;
+  F += L.accepts_report?1.5:0;
+  F += L.accepts_standard?1.5:0;
+
+  /* G) Stratégiai érték — 10p: auditor 0..100 inputokból (spec 8/G + 15.) */
+  let G = (0.30*num(L.local_influence) + 0.20*num(L.network_influence_score)
+         + 0.25*num(L.reference_value) + 0.25*num(L.growth_potential))/10;
+
+  const breakdown = {A:round1(A),B:round1(B),C:round1(C),D:round1(D),E:round1(E),F:round1(F),G:round1(G)};
+  let total = A+B+C+D+E+F+G;
+  total = Math.max(0, Math.min(100, total));
+  /* kézi felülírás (naplózva) — spec 20/8 */
+  if(L.paz_override!==null && L.paz_override!=="" && !isNaN(L.paz_override))
+    total = Math.max(0,Math.min(100,num(L.paz_override)));
+  return { total:Math.round(total), breakdown, reality:c };
+}
+
+/* strategic_value_score (0..100) Top1000-hez (spec 15.) */
+function strategicValueScore(L){
+  return Math.round(0.35*num(L.local_influence)+0.30*num(L.reference_value)+0.35*num(L.growth_potential));
+}
+
+/* calculateTop1000Score() (spec 15.) */
+function calculateTop1000Score(L){
+  const paz = calculatePAZScore(L).total;
+  const sv  = strategicValueScore(L);
+  const ni  = num(L.network_influence_score);
+  return Math.round(paz*0.70 + sv*0.20 + ni*0.10);
+}
+
+/* ================================================================
+   3 FELTÉTEL — ÁRULHATUNK-E? (Ferenc döntési modellje)
+   A Reality Index csali; itt MI döntünk, a struktúrából + fájdalomból.
+   1) STRUKTÚRA ISMERT — látjuk a szerelőket, rendszert, forgalmat, az adat konzisztens
+   2) VAN FÁJDALOM — visszahozható veszteség / hiányzó folyamat = van mit eladni
+   3) VAN KIVEL/MIBŐL — döntéshozó + akarat, forgalom (fizetőképesség), szerelő (aki használja)
+   ================================================================ */
+function sellabilityCheck(L){
+  const c = calculateProductionReality(L);
+  /* 1) STRUKTÚRA ISMERT */
+  const structureKnown =
+    num(L.productive_people)>0 && num(L.work_posts)>0 &&
+    num(L.monthly_turnover_total)>0 && num(L.hourly_rate)>0 &&
+    c.reality_status==="OK";
+  /* 2) VAN FÁJDALOM (visszahozható óra VAGY hiányzó folyamat) */
+  const processGap = (L.has_scheduling_responsible===false || L.has_followup_responsible===false ||
+    num(L.reception_people)===0 || L.has_parts_processor===false || L.has_callback_system===false);
+  const hasPain = c.lost_hours>0 || c.realistic_recoverable>0 || processGap;
+  /* 3) VAN KIVEL/MIBŐL */
+  const hasDecident = !!(L.decision_maker && L.decision_maker.trim());
+  const hasWill     = L.owner_commits_pilot || L.accepts_standard;
+  const canPay      = num(L.monthly_turnover_total)>0;     /* forgalom = fizetőképesség */
+  const hasOperator = num(L.productive_people)>=1;          /* szerelő, aki használja */
+  const hasMeans = hasDecident && hasWill && canPay && hasOperator;
+
+  const canSell = structureKnown && hasPain && hasMeans;
+  /* a fájdalom MÉRETE = az ajánlat súlya (NEM pass/fail) */
+  const painRatio = c.effective_capacity>0 ? Math.min(c.lost_hours/c.effective_capacity,1) : 0;
+  return { canSell, structureKnown, hasPain, hasMeans, painRatio,
+    hasDecident, hasWill, canPay, hasOperator,
+    reason: !structureKnown ? "structure" : !hasMeans ? "means" : !hasPain ? "pain" : "ok" };
+}
+
+/* determinePartnerCategory() — a VERDIKT: árulhatunk-e + mekkora a fájdalom */
+function determinePartnerCategory(L){
+  const s = sellabilityCheck(L);
+  if(!s.structureKnown)
+    return {key:"verify", score:0, ro:"Înapoi la audit — structură neclară", hu:"Vissza az auditba — nem tiszta a struktúra", color:var_("--verificare")};
+  if(!s.hasMeans)
+    return {key:"notready", score:0, ro:"Nu vindem — fără decident/voință/bază", hu:"Nem árulunk — nincs döntéshozó/akarat/bázis", color:var_("--critic")};
+  if(!s.hasPain)
+    return {key:"watchlist", score:0, ro:"Fără durere — nimic de vândut acum", hu:"Nincs fájdalom — most nincs mit eladni", color:var_("--slab")};
+  /* ÁRULHATUNK — a fájdalom mérete adja a súlyt */
+  const p=Math.round(s.painRatio*100);
+  if(s.painRatio>=0.35) return {key:"elite", score:p, ro:"Putem vinde — durere mare", hu:"Árulhatunk — nagy fájdalom", color:var_("--sanatos")};
+  if(s.painRatio>=0.15) return {key:"ready", score:p, ro:"Putem vinde — durere medie", hu:"Árulhatunk — közepes fájdalom", color:var_("--sanatos")};
+  return {key:"conditional", score:p, ro:"Putem vinde — durere mică", hu:"Árulhatunk — kis fájdalom", color:var_("--mediu")};
+}
+
+/* computeRiskFlags() (spec 10.) */
+function computeRiskFlags(L){
+  const c = calculateProductionReality(L);
+  const f=[];
+  if(num(L.reception_people)===0) f.push({ro:"Fără recepție",hu:"Nincs recepció"});
+  if(L.has_parts_processor===false) f.push({ro:"Fără procesare piese",hu:"Nincs alkatrész-feldolgozó"});
+  if(L.has_followup_responsible===false) f.push({ro:"Fără follow-up",hu:"Nincs follow-up"});
+  if(num(L.productive_people)<2)  f.push({ro:"Prea puțini productivi",hu:"Túl kevés termelő"});
+  if(num(L.work_posts)<2)         f.push({ro:"Prea puține posturi",hu:"Túl kevés munkaposzt"});
+  if(c.reality_status==="Data inconsistent") f.push({ro:"Date inconsistente",hu:"Adatellentmondás"});
+  if(!L.decision_maker||!L.decision_maker.trim()) f.push({ro:"Fără decident",hu:"Nincs döntéshozó"});
+  if(L.owner_commits_pilot===false) f.push({ro:"Fără pilot 30 zile",hu:"Nem vállalja a pilotot"});
+  if(L.has_quality_control===false) f.push({ro:"Fără control calitate",hu:"Nincs minőségellenőrzés"});
+  return f;
+}
+
+/* suggestDecision() — a 3 feltétel verdiktje */
+function suggestDecision(L){
+  const s = sellabilityCheck(L);
+  if(!s.structureKnown) return "Verification Required"; /* vissza az auditba */
+  if(!s.hasMeans)       return "No-Go";                 /* nincs kivel/miből */
+  if(!s.hasPain)        return "No-Go";                 /* nincs mit eladni */
+  return s.painRatio>=0.15 ? "Go" : "Conditional Go";   /* árulhatunk — fájdalom szerint */
+}
+
+/* canRunPilot() — R1 (RA-SALES MASTER v1.0): a PILOT külön kapuja.
+   A PAZ termelési score qualifikálja a PARTNERT. Ez qualifikálja a PILOTOT:
+   rechemare-készség nélkül a pilot NEM futtatható, akármekkora a termelési pontszám.
+   A meglévő audit-mezőkből olvas (Manual 6.1/6.2/6.5) — nincs új adatmodell. */
+function canRunPilot(L){
+  const hasOperator = L.has_followup_responsible===true;   /* NEVESÍTETT felelős a heti rechemare-listához (Manual 6.5/8) */
+  const hasBase     = L.has_digital_customer_db===true;     /* kontaktolható ügyfélbázis (Manual 6.1/1) */
+  const hasSystem   = L.has_callback_system===true;         /* visszahívó rendszer (Manual 6.2) — ajánlott, NEM blokkol */
+  const pass = hasOperator && hasBase;
+  const reason = !hasOperator ? "no_operator" : !hasBase ? "no_base" : "ok";
+  return { pass, reason, hasOperator, hasBase, hasSystem };
+}
+
+/* bridgeKPI() — R2 (RA-SALES MASTER 5.3): a KPI-híd.
+   Összeköti az RI termelési teasert (Xan) a pilot rechemare-bizonyítékával (venit).
+   Eredmény: havi visszanyerési ráta %. Ez a szám zárja a szerződést (Manual 18.).
+   Xan-forrás: elsődleges az RI handoff (L.ri_ref.Xan), tartalék a PAZ éves termelési vesztesége. */
+function bridgeKPI(L){
+  const c = calculateProductionReality(L);
+  const Xan = num(L.ri_ref && L.ri_ref.Xan) || (num(c.lost_labor_potential)*12) || 0;
+  const XanMonthly = Xan/12;
+  const venit = num(L.pilot_revenue);
+  const ratio = XanMonthly>0 ? venit/XanMonthly : 0;
+  return { Xan, XanMonthly, venit, ratio,
+    contacted:num(L.pilot_contacted), responded:num(L.pilot_responded),
+    scheduled:num(L.pilot_scheduled), jobs:num(L.pilot_jobs) };
+}
+
+/* canGenerateOffer() — ajánlat-kapu a 3 feltételre (NEM PAZ-küszöb) */
+function canGenerateOffer(L){
+  if(L.admin_override) return {ok:true, reason:""};
+  const s = sellabilityCheck(L);
+  if(!s.structureKnown) return {ok:false, reason:t("gate_structure")};
+  if(!s.hasMeans)       return {ok:false, reason:t("gate_means")};
+  if(!s.hasPain)        return {ok:false, reason:t("gate_pain")};
+  return {ok:true, reason:""};
+}
+
+/* generateOfferRecommendation() — ajánlattípus (spec 12.) */
+function generateOfferRecommendation(L){
+  const gate = canGenerateOffer(L);
+  if(!gate.ok) return {type:"D", code:"No Offer", ro:"Fără ofertă", hu:"Nincs ajánlat", gate};
+  const cat = determinePartnerCategory(L).key;
+  const dec = L.decision || suggestDecision(L);
+  if((cat==="elite"||cat==="ready") && dec==="Go")
+    return {type:"A", code:"Standard Red Assistance Offer", ro:"Ofertă Standard Red Assistance", hu:"Standard ajánlat", gate};
+  if(cat==="watchlist")
+    return {type:"C", code:"Development Audit Offer", ro:"Ofertă Audit de Dezvoltare", hu:"Fejlesztési audit ajánlat", gate};
+  return {type:"B", code:"Conditional Pilot Offer", ro:"Ofertă Pilot Condiționat", hu:"Feltételes pilot ajánlat", gate};
+}
+
+/* determineSalesStatus() — engedélyezett értékesítési státuszok (spec 13.) */
+function determineSalesStatus(){
+  return ["Offer Sent","Follow-up Needed","Objection Handling","Negotiation",
+          "Decision Maker Needed","Accepted","Rejected","Parked","Lost"];
+}
+
+/* objectionLogic() — kifogáskezelési válaszlogika (spec 13.) */
+const OBJECTIONS = {
+  pret:    {ro:"Preț", hu:"Ár", resp_ro:"Nu vindem un cost, ci ore de manoperă recuperate. Auditul arată potențialul nevalorificat — pilotul de 30 zile se autofinanțează din primele ore recuperate.", resp_hu:"Nem költséget adunk el, hanem visszanyert munkaórát. Az audit megmutatja a kihasználatlan potenciált — a 30 napos pilot az első visszanyert órákból finanszírozza önmagát."},
+  timp:    {ro:"Timp", hu:"Idő", resp_ro:"Începem doar cu fluxul minim: prima mașină, primul Health Report, primul follow-up. Dacă nici acest flux minim nu poate fi făcut, implementarea nu este recomandată acum.", resp_hu:"Csak a minimális folyamattal indítunk: első autó, első Health Report, első follow-up. Ha ez a minimum sem megy, az bevezetés most nem ajánlott."},
+  incredere:{ro:"Încredere", hu:"Bizalom", resp_ro:"De aceea propunem un pilot măsurabil de 30 zile, cu raport clar la final și extindere la 60/90 la nevoie. Decideți pe baza cifrelor proprii, nu pe promisiuni.", resp_hu:"Pont ezért javaslunk mérhető 30 napos pilotot, világos zárórriporttal és igény szerinti 60/90 napos hosszabbítással. A saját számaid alapján döntesz, nem ígéretekre."},
+  oameni:  {ro:"Lipsă oameni", hu:"Emberhiány", resp_ro:"Sistemul reduce orele pierdute — recuperați capacitate fără a angaja. Recepția devine multiplicator, nu cost.", resp_hu:"A rendszer csökkenti az elvesztett órákat — kapacitást nyersz felvétel nélkül. A recepció szorzóvá válik, nem költséggé."},
+  digital: {ro:"Frică digitală", hu:"Digitális félelem", resp_ro:"Pornim cu un singur flux, pe telefonul existent. Fără proiect IT, fără riscuri. Învățarea e pe parcurs.", resp_hu:"Egy folyamattal indulunk, a meglévő telefonon. Nincs IT-projekt, nincs kockázat. A tanulás menet közben."},
+  decident:{ro:"Fără decident", hu:"Nincs döntéshozó", resp_ro:"Programăm o vizită scurtă cu decidentul prezent — fără el, nu putem garanta rezultatele pilotului.", resp_hu:"Rövid látogatást egyeztetünk a döntéshozóval — nélküle a pilot eredménye nem garantálható."},
+  halog:   {ro:"Amânare", hu:"Halogatás", resp_ro:"Fiecare lună de amânare = ore pierdute pe care le-am calculat în audit. Fixăm o dată concretă de start.", resp_hu:"Minden halogatott hónap = elvesztett óra, amit az auditban kiszámoltunk. Rögzítsünk konkrét kezdődátumot."},
+  nuMerge: {ro:"„La noi nu merge”", hu:"„Nálunk ez nem működik”", resp_ro:"Auditul e specific service-ului dvs., nu un model generic. Testați pe primele 10 mașini și comparați cu propriile cifre.", resp_hu:"Az audit a te szervizedre specifikus, nem generikus modell. Teszteld az első 10 autón és hasonlítsd a saját számaidhoz."}
+};
+
+/* generateAuditReport() — strukturált riport objektum (spec 17.) */
+function generateAuditReport(L){
+  const paz = calculatePAZScore(L);
+  const cat = determinePartnerCategory(L);
+  const c   = paz.reality;
+  const flags = computeRiskFlags(L);
+  const reco  = generateOfferRecommendation(L);
+  const top   = calculateTop1000Score(L);
+  /* erősségek/gyengeségek a kategória-bontásból */
+  const strong=[], weak=[];
+  const maxByCat={A:20,B:15,C:15,D:15,E:15,F:10,G:10};
+  const nameByCat={A:t("paz_A"),B:t("paz_B"),C:t("paz_C"),D:t("paz_D"),E:t("paz_E"),F:t("paz_F"),G:t("paz_G")};
+  Object.keys(maxByCat).forEach(k=>{
+    const r = paz.breakdown[k]/maxByCat[k];
+    if(r>=0.75) strong.push(nameByCat[k]); else if(r<0.5) weak.push(nameByCat[k]);
+  });
+  return {paz, cat, c, flags, reco, top, strong, weak};
+}
+
+/* ---------------- segéd-számítók ------------------------------- */
+function num(v){ const n=parseFloat(v); return isNaN(n)?0:n; }
+function round1(v){ return Math.round(v*10)/10; }
+function scaleStep(v, table){ v=num(v); for(const [th,pts] of table){ if(v>=th) return pts; } return 0; }
+function var_(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||"#888"; }
+
+/* ---------------- formázók ------------------------------------- */
+const fmtRON = v => new Intl.NumberFormat("ro-RO",{maximumFractionDigits:0}).format(Math.round(num(v)))+" RON";
+const fmtH   = v => new Intl.NumberFormat("ro-RO",{maximumFractionDigits:0}).format(Math.round(num(v)))+" h";
+const fmtPct = v => round1(num(v))+"%";
+
+/* ================================================================
+   5) i18n — RO (alapnyelv) / HU nyelvváltó (spec: app alapnyelve RO)
+   ================================================================ */
+const I18N = {
+  brandsub:{ro:"ZONA DE AUDIT PARTENER",hu:"PARTNER ALKALMASSÁGI ZÓNA"},
+  nav_pipeline:{ro:"Flux audit",hu:"Audit folyamat"},
+  nav_landing:{ro:"Leaduri",hu:"Leadek"},
+  nav_audit:{ro:"Audit",hu:"Audit"},
+  nav_result:{ro:"Rezultat",hu:"Eredmény"},
+  bg_leads:{ro:"leaduri",hu:"lead"},
+  bg_audits:{ro:"audituri",hu:"audit"},
+  bg_accepted:{ro:"acceptate",hu:"elfogadva"},
+  nav_dash:{ro:"Dashboard",hu:"Vezérlőpult"},
+  nav_top:{ro:"Top 1000",hu:"Top 1000"},
+  load_test:{ro:"Date demo",hu:"Demo adat"},
+  /* steps */
+  step1:{ro:"Reality Check",hu:"Reality Check"}, step1s:{ro:"Auto-audit",hu:"Önaudit"},
+  step2:{ro:"Audit",hu:"Audit"}, step2s:{ro:"Verificare",hu:"Ellenőrzés"},
+  step3:{ro:"Decizie",hu:"Döntés"}, step3s:{ro:"Poartă",hu:"Kapu"},
+  step4:{ro:"Ofertă",hu:"Árajánlat"}, step4s:{ro:"Propunere",hu:"Javaslat"},
+  step5:{ro:"Vânzare",hu:"Értékesítés"}, step5s:{ro:"Negociere",hu:"Tárgyalás"},
+  step6:{ro:"Vizită",hu:"Látogatás"}, step6s:{ro:"Activare",hu:"Aktiválás"},
+  /* errors */
+  err_pct:{ro:"Procentul pieselor și al manoperei trebuie să fie împreună 100%.",hu:"Az alkatrész- és munkadíj-százaléknak együtt 100%-nak kell lennie."},
+  err_prod:{ro:"Nu există personal productiv introdus.",hu:"Nincs megadva termelő személyzet."},
+  err_rate:{ro:"Tariful orar trebuie să fie mai mare decât zero.",hu:"Az óradíjnak nullánál nagyobbnak kell lennie."},
+  inconsistent:{ro:"Cifra de afaceri indică mai multe ore de manoperă decât capacitatea realistă. Verificați procentul de manoperă, tariful orar, veniturile externe sau numărul de productivi.",hu:"A forgalom több munkaórát jelez, mint a reális kapacitás. Ellenőrizd a munkadíj-százalékot, az óradíjat, a külső bevételt vagy a termelők számát."},
+  /* gates */
+  gate_inconsistent:{ro:"Date inconsistente — ofertă blocată până la verificare (sau Admin override).",hu:"Adatellentmondás — ajánlat tiltva ellenőrzésig (vagy Admin override)."},
+  gate_decision:{ro:"Ofertă permisă doar după Go sau Conditional Go.",hu:"Ajánlat csak Go vagy Conditional Go után."},
+  gate_paz:{ro:"Scor PAZ < 65 — ofertă blocată fără Admin override.",hu:"PAZ Score < 65 — ajánlat tiltva Admin override nélkül."},
+  gate_structure:{ro:"Structură neclară / date inconsistente — înapoi la audit, nu putem vedea condiția.",hu:"Nem tiszta a struktúra / ellentmondó adat — vissza az auditba, nem látjuk a kondíciót."},
+  gate_means:{ro:"Fără decident / voință / cifră / mecanic — nu avem cu cine și din ce.",hu:"Nincs döntéshozó / akarat / forgalom / szerelő — nincs kivel és miből."},
+  gate_pain:{ro:"Fără durere recuperabilă — nimic de vândut acum.",hu:"Nincs visszahozható fájdalom — most nincs mit eladni."},
+  gate_recall_operator:{ro:"Pilot blocat: fără responsabil numit pentru lista săptămânală de rechemare (Manual 6.5). Numiți persoana în audit înainte de start.",hu:"Pilot blokkolva: nincs nevesített felelős a heti rechemare-listához (Manual 6.5). Jelöld ki a személyt az auditban indítás előtt."},
+  gate_recall_base:{ro:"Pilot blocat: fără bază de clienți contactabilă (Manual 6.1). Fără contacte, rechemarea nu poate fi măsurată în pilot.",hu:"Pilot blokkolva: nincs kontaktolható ügyfélbázis (Manual 6.1). Kontaktok nélkül a rechemare a pilotban nem mérhető."},
+  cond_structure:{ro:"Structură cunoscută",hu:"Struktúra ismert"},
+  cond_structure_s:{ro:"mecanici · sistem · cifră · date consistente",hu:"szerelők · rendszer · forgalom · konzisztens adat"},
+  cond_pain:{ro:"Există durere",hu:"Van fájdalom"},
+  cond_pain_s:{ro:"pierdere recuperabilă / proces lipsă = de vândut",hu:"visszahozható veszteség / hiányzó folyamat = eladnivaló"},
+  cond_means:{ro:"Cu cine & din ce",hu:"Van kivel & miből"},
+  cond_means_s:{ro:"decident + voință · cifră · mecanic",hu:"döntéshozó + akarat · forgalom · szerelő"},
+  verdict_sell:{ro:"PUTEM VINDE",hu:"ÁRULHATUNK"},
+  verdict_nosell:{ro:"NU (încă)",hu:"NEM (még)"},
+  pain_size:{ro:"Mărimea durerii",hu:"Fájdalom mérete"},
+  /* PAZ categories */
+  paz_A:{ro:"Capacitate",hu:"Kapacitás"}, paz_B:{ro:"Structură personal",hu:"Személyzeti szerkezet"},
+  paz_C:{ro:"Flux client",hu:"Ügyfélfolyamat"}, paz_D:{ro:"Maturitate digitală",hu:"Digitális érettség"},
+  paz_E:{ro:"Realitate financiară",hu:"Pénzügyi realitás"}, paz_F:{ro:"Voință managerială",hu:"Vezetői akarat"},
+  paz_G:{ro:"Valoare strategică",hu:"Stratégiai érték"},
+  /* readout */
+  ri:{ro:"Reality Index",hu:"Reality Index"}, paz_score:{ro:"Scor PAZ",hu:"PAZ Score"},
+  top_score:{ro:"Top 1000",hu:"Top 1000"},
+  to_total:{ro:"Cifră de afaceri lunară totală",hu:"Teljes havi forgalom"},
+  to_service:{ro:"Cifră service estimată",hu:"Becsült szerviz-forgalom"},
+  to_parts:{ro:"Venit piese",hu:"Alkatrész bevétel"},
+  to_labor:{ro:"Venit manoperă",hu:"Munkadíj bevétel"},
+  hours_sold:{ro:"Ore vândute estimate",hu:"Becsült eladott óra"},
+  cap:{ro:"Capacitate realistă",hu:"Reális kapacitás"},
+  lost_h:{ro:"Ore nevalorificate",hu:"Kihasználatlan óra"},
+  lost_p:{ro:"Potențial nevalorificat",hu:"Kihasználatlan potenciál"},
+  recover:{ro:"Recuperabil realist",hu:"Reálisan visszanyerhető"},
+  category:{ro:"Categorie",hu:"Kategória"},
+  /* actions */
+  back:{ro:"Înapoi",hu:"Vissza"}, next:{ro:"Continuă",hu:"Tovább"},
+  new_lead:{ro:"Service nou",hu:"Új szerviz"}, del_lead:{ro:"Șterge",hu:"Törlés"},
+  exp_json:{ro:"Export JSON",hu:"JSON export"}, exp_csv:{ro:"Export CSV",hu:"CSV export"},
+  exp_pdf:{ro:"Export PDF (Print)",hu:"PDF export (Nyomtatás)"},
+};
+function t(key){ const e=I18N[key]; return e?(e[state.lang]||e.ro):key; }
+function L2(o){ return o[state.lang]||o.ro; }
+
+/* ================================================================
+   6) RENDERELÉS
+   ================================================================ */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  $$("#nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===state.view));
+  $$("#lang button").forEach(b=>b.classList.toggle("active",b.dataset.lang===state.lang));
+  $$("[data-i]").forEach(el=>el.textContent=t(el.dataset.i));
+  routeWindow();
+  const root=$("#root");
+  if(state.view==="landing") root.innerHTML=viewLanding();
+  else if(state.view==="audit") root.innerHTML=viewAudit();
+  else if(state.view==="result") root.innerHTML=viewResult();
+  else if(state.view==="dashboard") root.innerHTML=viewDashboard();
+  else root.innerHTML=viewTop1000();
+  renderBgStats();
+  bindView();
+}
+
+/* ---------- Lead választó sáv ---------- */
+function leadBar(){
+  const opts = state.leads.map(l=>`<option value="${l.id}" ${l.id===state.currentId?"selected":""}>${esc(l.service_name||"(fără nume)")} — ${esc(l.city||"")} · PAZ ${calculatePAZScore(l).total}</option>`).join("");
+  return `<div class="leadbar">
+    <select id="leadPick" ${state.leads.length?"":"disabled"}>${state.leads.length?opts:`<option>${t("new_lead")}…</option>`}</select>
+    <button class="btn sm" id="newLead">+ ${t("new_lead")}</button>
+    ${state.currentId?`<button class="btn ghost sm" id="delLead">${t("del_lead")}</button>`:""}
+    <div class="spacer"></div>
+    ${state.currentId?`<button class="btn ghost sm" id="eJson">${t("exp_json")}</button>
+    <button class="btn ghost sm" id="eCsv">${t("exp_csv")}</button>
+    <button class="btn ghost sm" id="ePdf">${t("exp_pdf")}</button>`:""}
+  </div>`;
+}
+
+/* ---------- ÁLTALÁNOS pipeline-nézet (adott lépés-készletre) ---------- */
+function pipelineView(stepSet){
+  const L=currentLead();
+  if(!L) return leadBar()+`<div class="card"><div class="empty">${state.lang==="ro"?"Creați un service pentru a începe auditul.":"Hozz létre egy szervizt az audit indításához."}</div></div>`;
+  const stepDone = s=>{ const fi=FLOW.indexOf(L.lead_status); return s<state.step && fi>=1; };
+  const stepper=`<div class="stepper">`+stepSet.map(s=>`
+    <div class="step ${s===state.step?"active":""} ${stepDone(s)?"done":""}" data-step="${s}">
+      <div class="n">0${s}</div>
+      <div class="t">${t("step"+s)}</div>
+      <div class="s">${t("step"+s+"s")}</div>
+    </div>`).join("")+`</div>`;
+  return leadBar()+stepper+`<div class="grid">
+    <div id="stepBody">${stepBody(L)}</div>
+    <div class="rail">${railReadout(L)}</div>
+  </div>`;
+}
+
+/* ---------- ABLAK 2: Audit (bejött ügyfelek) ---------- */
+function viewAudit(){ return pipelineView(WIN.audit); }
+
+/* ---------- ABLAK 3: Eredmény / Elfogadás ---------- */
+function viewResult(){ return LAYOUT==="A" ? pipelineView(WIN.result) : resultSummary(); }
+
+/* B elrendezés: olvasható eredmény-összegző kártya + elfogadás */
+/* ===== FUTÓ VESZTESÉG-SZÁMLÁLÓ — a kényszer vizuális motorja.
+   Az audit óta felgyűlt elveszett RON, élőben ketyegve. Igazság, nem nyomás:
+   a mért havi zárolt RON × eltelt idő. Csak konzisztens adaton + ÁRULHATUNK verdiktnél. */
+const MS_MONTH = 30.44*24*3600*1000;
+function runningLoss(L){
+  const c = calculateProductionReality(L), sell = sellabilityCheck(L);
+  const perMonth = num(c.realistic_recoverable);   /* P-alapú havi visszanyerhető */
+  const valid = c.reality_status==="OK" && perMonth>0;
+  const ref = L.audit_date || L.createdAt || null;
+  const since = ref ? new Date(ref).getTime() : null;
+  const months = (since && Date.now()>since) ? (Date.now()-since)/MS_MONTH : 0;
+  return { perMonth, months, accrued:perMonth*months, valid, canSell:sell.canSell, since };
+}
+function fmtRON2(n){ return (Math.round(n*100)/100).toLocaleString(state.lang==="ro"?"ro-RO":"hu-HU",{minimumFractionDigits:2,maximumFractionDigits:2})+" RON"; }
+let _lossTicker=null;
+function startLossTicker(){
+  if(_lossTicker) return;
+  _lossTicker = setInterval(()=>{
+    const el=document.getElementById("lossCounterVal"); if(!el) return;
+    const L=currentLead(); if(!L) return;
+    const r=runningLoss(L);
+    if(r.valid && r.canSell) el.textContent=fmtRON2(r.accrued);
+  },1000);
+}
+function lossCounterCard(L){
+  const ro=state.lang==="ro", r=runningLoss(L);
+  if(!r.canSell || !r.valid) return "";   /* nincs verdikt / gyanús adat → a Záró Modul kezeli az okot */
+  startLossTicker();
+  const sinceTxt = r.since ? new Date(r.since).toLocaleDateString(ro?"ro-RO":"hu-HU") : "—";
+  return `<div class="verdict" style="border-color:var(--loss);color:var(--loss)">
+    <div class="vsize" style="color:var(--muted);margin:0 0 4px">${ro?"Pierdut de la audit":"Az audit óta elveszett"} (${sinceTxt})</div>
+    <div class="vbig" id="lossCounterVal" style="color:var(--loss)">${fmtRON2(r.accrued)}</div>
+    <div class="vsize" style="margin-top:6px">${ro?"Ritm: "+fmtRON(r.perMonth)+"/lună · fiecare lună fără decizie curge din nou":"Ütem: "+fmtRON(r.perMonth)+"/hó · minden döntés nélküli hónap újra elfolyik"}</div>
+  </div>`;
+}
+function resultSummary(){
+  const L=currentLead();
+  if(!L) return leadBar()+`<div class="card"><div class="empty">${state.lang==="ro"?"Niciun lead.":"Nincs lead."}</div></div>`;
+  const ro=state.lang==="ro";
+  const paz=calculatePAZScore(L), c=calculateProductionReality(L), cat=determinePartnerCategory(L), top=calculateTop1000Score(L);
+  const line=(k,v)=>`<div class="rline"><span class="rk">${k}</span><span class="rv">${v}</span></div>`;
+  const body=`<div class="card"><h2>${ro?"Rezultat audit":"Audit eredmény"} <span class="pill">${esc(L.service_name||"—")}</span></h2>
+    <div class="lead-sub">${ro?"Sumarul auditului și decizia de acceptare.":"Az audit összegzése és az elfogadási döntés."}</div>
+    ${lossCounterCard(L)}
+    <div class="rsum">
+      ${line("PAZ", paz.total+"/100")}
+      ${line("Reality Index", round1(c.utilization_rate)+"%")}
+      ${line(ro?"Categorie":"Kategória", L2(cat))}
+      ${line("Top 1000", top)}
+      ${line(ro?"Decizie":"Döntés", esc(L.decision||"—"))}
+      ${line(ro?"Ofertă":"Ajánlat", L.offer_sent?(ro?"Trimisă":"Elküldve"):L.offer_created?(ro?"Creată":"Kész"):"—")}
+      ${line(ro?"Status vânzare":"Értékesítés", esc(L.sales_status||"—"))}
+      ${line(ro?"Status":"Státusz", esc(L.lead_status))}
+    </div>
+    <div class="nav-actions">
+      <button class="btn" id="salesAccept" style="border-color:var(--sanatos);color:var(--sanatos)">${ro?"Acceptă":"Elfogad"}</button>
+      <button class="btn" id="salesReject">${ro?"Respinge":"Elutasít"}</button>
+    </div>
+  </div>`;
+  return leadBar()+`<div class="grid"><div id="stepBody">${body}</div><div class="rail">${railReadout(L)}</div></div>`;
+}
+
+/* ---------- ABLAK 1: Landing (publikus tükör-funnel) ---------- */
+function viewLanding(){
+  const ro=state.lang==="ro";
+  const riLeads = state.leads.filter(l=>l.ri_source);
+  const manual  = state.leads.filter(l=>!l.ri_source);
+  const tierCol = tt => tt==="A"?"var(--sanatos)": tt==="B"?"var(--mediu)": tt==="C"?"var(--slab)":"var(--muted)";
+  const rowRI = L => { const r=L.ri_ref||{}; return `<div class="hub-row" data-open="${L.id}">
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:700;color:var(--text)">${esc(L.service_name||L.email||"—")}</div>
+      <div class="faint" style="font-size:12px">${esc(L.email||"")}${L.main_pain?` · ${esc(L.main_pain)}`:""}</div>
+    </div>
+    <div class="hub-metrics">
+      <span>RI ${r.util??"—"}%</span>
+      <span style="color:var(--critic)">−${fmtRON(r.Xan??((r.X||0)*12))}/${ro?"an":"év"}</span>
+      ${r.tier?`<span class="cat-badge" style="color:${tierCol(r.tier)}">TIER ${r.tier}</span>`:""}
+    </div>
+    <div class="faint" style="font-size:11px;min-width:92px;text-align:right">${esc(L.lead_status)}</div>
+  </div>`; };
+  const rowM = L => `<div class="hub-row" data-open="${L.id}">
+    <div style="flex:1;min-width:0"><div style="font-weight:700;color:var(--text)">${esc(L.service_name||(ro?"(fără nume)":"(névtelen)"))}</div>
+    <div class="faint" style="font-size:12px">${esc(L.city||"")} · PAZ ${calculatePAZScore(L).total}</div></div>
+    <div class="faint" style="font-size:11px;min-width:92px;text-align:right">${esc(L.lead_status)}</div>
+  </div>`;
+  return `<div class="hero">
+    <div class="eyebrow">Red Assistance PAZ • ${ro?"Intrare":"Belépő"}</div>
+    <h1>${ro?"Leaduri & audit":"Leadek & audit"}</h1>
+    <p>${ro?"Leadurile din Reality Index intră aici, pre-completate automat. Cine nu vine din Reality Index — completezi auditul manual.":"A Reality Indexből jövő leadek itt érkeznek, automatikusan előre kitöltve. Aki nem onnan jön — kézzel töltöd ki az auditot."}</p>
+  </div>
+  <div class="card">
+    <div class="section-h" style="margin-top:0">${ro?"Leaduri Reality Index":"Reality Index leadek"} · ${riLeads.length}</div>
+    ${riLeads.length ? riLeads.map(rowRI).join("") : `<div class="alert info"><span class="ic">i</span><div>${ro?"Niciun lead din Reality Index încă. Apar automat aici când sosesc — deja auto-completate.":"Még nincs Reality Index lead. Automatikusan itt jelennek meg, amint megérkeznek — már auto-kitöltve."}</div></div>`}
+  </div>
+  <div class="card">
+    <div class="section-h" style="margin-top:0">${ro?"Completare manuală":"Kézi felvétel"}</div>
+    <p class="faint" style="margin:0 0 12px">${ro?"Service care NU a trecut prin Reality Index — pornești auditul gol și îl completezi tu.":"Olyan szerviz, ami NEM ment át a Reality Indexen — üres auditot indítasz és te töltöd ki."}</p>
+    <button class="btn primary" id="manualNew" style="width:100%">${ro?"Service nou — completez auditul manual":"Új szerviz — kézzel töltöm az auditot"}</button>
+    ${manual.length ? `<div class="section-h">${ro?"Manuale":"Kézi felvételek"} · ${manual.length}</div>`+manual.map(rowM).join("") : ""}
+  </div>`;
+}
+function renderBgStats(){
+  const el=$("#bgstats"); if(!el) return;
+  const ls=state.leads;
+  const auditDone=ls.filter(l=>FLOW.indexOf(l.lead_status)>=2).length;
+  const accepted=ls.filter(l=>l.sales_status==="Accepted").length;
+  el.innerHTML=`<span class="bgstat"><b>${ls.length}</b> ${t("bg_leads")}</span>
+    <span class="bgstat"><b>${auditDone}</b> ${t("bg_audits")}</span>
+    <span class="bgstat ok"><b>${accepted}</b> ${t("bg_accepted")}</span>`;
+}
+
+/* ---------- Jobb oldali műszer (gauge + PAZ + readout) ---------- */
+/* ===== WHY-DIAGNÓZIS — a rés okokra bontása (auto-audit lényege) =====
+   A Reality Index megmutatta HOGY rossz (rés). Itt MIÉRT: a visszanyerhető
+   szeletek (Recepció 25% + Ajánlat 25% + Termelés 15%) közül melyiket zárolja
+   egy hiányzó rendszer. Ahol nincs meg a rendszer → ott vész el a pénz. */
+/* PAZ A–G flag-vezérelt kategóriák → pending-detektálás (audit előtti „—") */
+const PAZ_FLAG_CATS = {
+  C:["has_scheduling_responsible","has_offer_tracking","has_followup_responsible","has_health_report","has_quality_control"],
+  D:["has_digital_customer_db","has_daily_production_report","has_callback_system","has_digital_communication","has_digital_service_history"],
+  F:["owner_commits_pilot","accepts_report","accepts_standard"]
+};
+function catPending(L,k){ const f=PAZ_FLAG_CATS[k]; return f ? f.every(s=>L[s]==null) : false; }
+
+/* ===== WHY-DIAGNÓZIS — háromállapot-tudatos (? pending / ✓ van / ✕ hiányzik) =====
+   A rés okokra bontása. ZÁROLT csak a MEGERŐSÍTETTEN hiányzó (===false) rendszerből.
+   A pending (null) NEM veszteség — az audit építi fel a diagnózist, nem az alapérték. */
+/* ===== RI main_pain → szerelő-nyelvű diagnózis (a 6 RI-diagnózis felszínre hozása)
+   Display-only: a primary KIVÁLASZTÁST és a diagnózis SZÖVEGET vezérli; a pénzügyi
+   modellt (slice 25/25/15, locked RON) NEM érinti. bucket: 0=Recepció 1=Ajánlat 2=Termelés, -1=meta. */
+const RI_PAIN_DIAG = {
+  recep: { bucket:0,  ro:"Recepție „transfer de hârtii” — preia, nu vinde",       hu:"Papírtovábbító recepció — felvesz, nem értékesít" },
+  offer: { bucket:1,  ro:"Cimitir de oferte — se fac oferte, dar nu se urmăresc",  hu:"Ajánlattemető — készül ajánlat, de nincs utánkövetés" },
+  recur: { bucket:1,  ro:"Service fără recurență — clientul nu revine",            hu:"Rekurencia nélküli szerviz — az ügyfél nem tér vissza" },
+  chaos: { bucket:2,  ro:"Atelier haotic — ziua o conduce haosul, nu planul",      hu:"Káoszvezérelt műhely — a napot a káosz vezeti, nem a terv" },
+  procur:{ bucket:2,  ro:"Aprovizionare pompieristică — fură ore de producție",    hu:"Beszerzési tűzoltás — termelési órát vesz el" },
+  prod:  { bucket:-1, ro:"Orbire managerială — producția reală nu se vede",        hu:"Vezetői vakság — a valós termelés nem látszik" },
+  money: { bucket:-1, ro:"Orbire managerială — nu se știe unde se duc banii",      hu:"Vezetői vakság — nem látszik, hova megy a pénz" }
+};
+function whyDiagnosis(L){
+  const c = calculateProductionReality(L);
+  const gap = num(c.lost_labor_potential);
+  const ro = state.lang==="ro";
+  const defs = [
+    { w:0.25, ro:"Recepție", hu:"Recepció",
+      sys:["has_followup_responsible","has_callback_system","has_health_report","has_digital_customer_db"],
+      dgRo:"Recepție „transfer de hârtii” — preia, nu vinde",
+      dgHu:"Papírtovábbító recepció — felvesz, nem értékesít" },
+    { w:0.25, ro:"Ofertă / recurență", hu:"Ajánlat / rekurencia",
+      sys:["has_offer_tracking","has_digital_service_history","has_digital_communication"],
+      dgRo:"Cimitir de oferte, fără recurență — clientul nu revine",
+      dgHu:"Ajánlattemető, nincs rekurencia — az ügyfél nem tér vissza" },
+    { w:0.15, ro:"Producție", hu:"Termelés",
+      sys:["has_scheduling_responsible","has_daily_production_report","has_parts_processor","has_quality_control"],
+      dgRo:"Atelier haotic — fără programare și raport zilnic",
+      dgHu:"Káoszvezérelt műhely — nincs programozás és napi riport" }
+  ];
+  let lockedTotal=0, achievableTotal=0, pendingTotal=0, auditedAll=0, sysAll=0;
+  const rows = defs.map(b=>{
+    const slice = gap*b.w;
+    const missing = b.sys.filter(s=>L[s]===false);   /* megerősített hiány */
+    const present = b.sys.filter(s=>L[s]===true);
+    const pending = b.sys.filter(s=>L[s]==null);
+    const total = b.sys.length;
+    const mr = total>0 ? missing.length/total : 0;    /* ZÁROLT csak megerősített hiányból */
+    const pr = total>0 ? pending.length/total : 0;
+    const locked = slice*mr, pendingAmt = slice*pr, achievable = slice-locked-pendingAmt;
+    lockedTotal+=locked; achievableTotal+=achievable; pendingTotal+=pendingAmt;
+    auditedAll += missing.length+present.length; sysAll += total;
+    return { name: ro?b.ro:b.hu, weight:b.w, slice, locked, pendingAmt, achievable,
+      missCount:missing.length, presentCount:present.length, pendingCount:pending.length, sysCount:total,
+      missRatio:mr, pendRatio:pr, diag: ro?b.dgRo:b.dgHu };
+  });
+  const sorted = rows.slice().sort((a,b)=>b.locked-a.locked);
+  /* ===== Fájdalom-vezérelt felszínre hozás (GAP 3 + a 6 RI-diagnózis) =====
+     A tulaj jelzett fő fájdalma viszi a holtversenyt, és a pontos RI-nevet adja.
+     A slice-súlyokat és a locked RON-t NEM módosítja — csak a primary + diag szöveget. */
+  const pd = RI_PAIN_DIAG[L.main_pain] || null;
+  let primary = (sorted[0] && sorted[0].locked>0) ? sorted[0] : null;
+  let painDriven=false, blindOverlay=null;
+  if(pd){
+    if(pd.bucket===-1){ blindOverlay = ro ? pd.ro : pd.hu; }
+    else { const pb=rows[pd.bucket];
+      if(pb && (pb.locked>0 || pb.pendingCount>0)){ pb.diag = ro?pd.ro:pd.hu; primary=pb; painDriven=true; } }
+  }
+  return { rows, lockedTotal, achievableTotal, pendingTotal, gap, ro,
+    auditedAll, sysAll, fullyPending:(auditedAll===0),
+    primary, painDriven, blindOverlay, painId:(L.main_pain||null) };
+}
+function whyRailCard(L){
+  const w = whyDiagnosis(L); const ro=w.ro;
+  const head = ro?"DE CE pierde · diagnostic":"MIÉRT veszít · diagnózis";
+  if(w.gap<=0){
+    return `<div style="margin-top:14px"><div class="section-h" style="margin-top:0">${head}</div>
+      <div class="alert info"><span class="ic">i</span><div>${ro?"Fără pierdere de producție măsurabilă în acest moment.":"Nincs mérhető termelési veszteség jelenleg."}</div></div></div>`;
+  }
+  const rowsHtml = w.rows.map(r=>{
+    const counts = `<span style="color:var(--critic)">${r.missCount}✕</span> · <span style="color:var(--mediu)">${r.pendingCount}?</span> · <span style="color:var(--sanatos)">${r.presentCount}✓</span>`;
+    const lockTxt = r.locked>0 ? `<span class="num" style="color:var(--loss)">−${fmtRON(r.locked)}</span>`
+                  : (r.pendingCount>0 ? `<span class="num" style="color:var(--mediu)">? ${fmtRON(r.pendingAmt)}</span>`
+                  : `<span class="num" style="color:var(--recover)">${fmtRON(0)}</span>`);
+    return `<div class="bd-item">
+      <div class="bd-top"><span class="lbl">${esc(r.name)} <span style="font-size:11px">(${counts})</span></span>${lockTxt}</div>
+      <div class="bar"><i style="width:${Math.round((r.missRatio+r.pendRatio)*100)}%;background:linear-gradient(90deg,var(--loss) 0,var(--loss) ${r.missRatio/(r.missRatio+r.pendRatio||1)*100}%,var(--mediu) ${r.missRatio/(r.missRatio+r.pendRatio||1)*100}%)"></i></div>
+    </div>`;
+  }).join("");
+  let diag;
+  if(w.blindOverlay){
+    diag = `<div class="alert err" style="margin-top:8px"><span class="ic">!</span><div><b>${esc(w.blindOverlay)}</b><br><span style="color:var(--muted)">${ro?"Ce nu se măsoară nu se poate conduce — Reality Report.":"Ami nincs mérve, az nem irányítható — Reality Report."}</span></div></div>`;
+  } else if(w.fullyPending){
+    diag = `<div class="alert info" style="margin-top:8px"><span class="ic">?</span><div><b>${ro?"Înainte de audit":"Audit előtt"}</b><br><span style="color:var(--muted)">${ro?"Diagnosticul se construiește din audit. Marchează ✓/✕ la fiecare sistem.":"A diagnózis az auditból épül. Jelölj ✓/✕-t minden rendszernél."}</span></div></div>`;
+  } else if(w.primary){
+    const sub = w.painDriven ? (ro?"Sistemul din spatele durerii principale semnalate.":"A jelzett fő fájdalom mögötti rendszerhiba.") : (ro?"Cea mai mare pierdere confirmată de un sistem lipsă.":"A legnagyobb megerősített veszteséget egy hiányzó rendszer okozza.");
+    diag = `<div class="alert err" style="margin-top:8px"><span class="ic">!</span><div><b>${esc(w.primary.diag)}</b><br><span style="color:var(--muted)">${sub}</span></div></div>`;
+  } else {
+    diag = `<div class="alert info" style="margin-top:8px"><span class="ic">i</span><div>${ro?"Sistemele auditate există — pierderea nu vine din lipsa lor.":"Az auditált rendszerek megvannak — a veszteség nem ezek hiányából jön."}</div></div>`;
+  }
+  return `<div style="margin-top:14px">
+    <div class="section-h" style="margin-top:0">${head}</div>
+    <div class="faint" style="font-size:11px;margin-bottom:6px">${ro?"Auditat":"Auditálva"}: ${w.auditedAll}/${w.sysAll} ${ro?"sisteme":"rendszer"}</div>
+    <div class="bd">${rowsHtml}</div>
+    ${diag}
+    <div class="statusline" style="justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:4px">
+      <span>${ro?"Confirmat blocat":"Megerősített zárolt"}: <b style="color:var(--loss)">${fmtRON(w.lockedTotal)}</b></span>
+      <span>${ro?"De auditat":"Auditálandó"}: <b style="color:var(--mediu)">${fmtRON(w.pendingTotal)}</b></span>
+    </div>
+  </div>`;
+}
+function railReadout(L){
+  const paz=calculatePAZScore(L);
+  const c=paz.reality;
+  const band=realityBand(c.utilization_rate);
+  const cat=determinePartnerCategory(L);
+  const top=calculateTop1000Score(L);
+  const u=c.utilization_rate;
+  /* gauge geometria (félkör, 0..120 -> 180°..0°) */
+  const uClamped=Math.max(0,Math.min(120,u));
+  const ang=180-(uClamped/120)*180;
+  const cx=140,cy=140,r=110;
+  const needleX=cx+ (r-14)*Math.cos(ang*Math.PI/180);
+  const needleY=cy- (r-14)*Math.sin(ang*Math.PI/180);
+  /* színes sávok az íven */
+  const arc=(a0,a1,col)=>{
+    const x0=cx+r*Math.cos(a0*Math.PI/180), y0=cy-r*Math.sin(a0*Math.PI/180);
+    const x1=cx+r*Math.cos(a1*Math.PI/180), y1=cy-r*Math.sin(a1*Math.PI/180);
+    const large=(a0-a1)>180?1:0;
+    return `<path d="M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}" stroke="${col}" stroke-width="16" fill="none" stroke-linecap="butt"/>`;
+  };
+  const seg=(p0,p1)=>[180-(p0/120)*180,180-(p1/120)*180];
+  const bands=[
+    [seg(0,50),var_("--critic")],[seg(50,70),var_("--slab")],[seg(70,85),var_("--mediu")],
+    [seg(85,100),var_("--sanatos")],[seg(100,110),var_("--ridicat")],[seg(110,120),var_("--verificare")]
+  ].map(([[a0,a1],col])=>arc(a0,a1,col)).join("");
+
+  const pazPct=paz.total, pazCol=cat.color;
+  /* PAZ ring (kör) */
+  const circ=2*Math.PI*42;
+  const ringDash=`${circ*pazPct/100} ${circ}`;
+
+  return `<div class="card gauge-card">
+    <h2 style="justify-content:center"><span data-i="ri">${t("ri")}</span></h2>
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 280 160" width="280" height="160">
+        <path d="M 30 140 A 110 110 0 0 1 250 140" stroke="var(--surface-3)" stroke-width="16" fill="none"/>
+        ${bands}
+        <circle cx="${cx}" cy="${cy}" r="7" fill="${band.color}"/>
+        <line x1="${cx}" y1="${cy}" x2="${needleX}" y2="${needleY}" stroke="${band.color}" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <div class="gauge-val">
+        <div class="big" style="color:${band.color}">${round1(u)}<span style="font-size:24px">%</span></div>
+        <div class="lbl">Utilizare / Kihasználtság</div>
+      </div>
+    </div>
+    <div class="gauge-band" style="color:${band.color}">${L2(band)}</div>
+
+    <div class="readout">
+      <div class="ro-item"><span class="k">${t("to_total")}</span><span class="v">${fmtRON(L.monthly_turnover_total)}</span></div>
+      <div class="ro-item"><span class="k">${t("to_service")}</span><span class="v">${fmtRON(c.service_turnover)}</span></div>
+      <div class="ro-item"><span class="k">${t("to_parts")}</span><span class="v">${fmtRON(c.parts_revenue)}</span></div>
+      <div class="ro-item"><span class="k">${t("to_labor")}</span><span class="v">${fmtRON(c.labor_revenue)}</span></div>
+      <div class="ro-item"><span class="k">${t("hours_sold")}</span><span class="v">${fmtH(c.implied_labor_hours)}</span></div>
+      <div class="ro-item"><span class="k">${t("cap")}</span><span class="v">${fmtH(c.effective_capacity)}</span></div>
+      <div class="ro-item"><span class="k">${t("lost_h")}</span><span class="v">${fmtH(c.lost_hours)}</span></div>
+      <div class="ro-item"><span class="k">${t("lost_p")}</span><span class="v">${fmtRON(c.lost_labor_potential)}</span></div>
+      <div class="ro-item"><span class="k">${t("recover")}</span><span class="v hl">${fmtRON(c.realistic_recoverable)}</span></div>
+      <div class="ro-item"><span class="k faint" style="font-size:11px">${state.lang==="ro"?"probabilitate · sigur "+fmtRON(c.recoverable_certain):"valószínűség · biztos "+fmtRON(c.recoverable_certain)}</span><span class="v faint" style="font-size:11px">49% → ${Math.round(c.recovery_P*100)}%</span></div>
+      ${(()=>{const dc=calculateDataConfidence(L);return `<div class="ro-item"><span class="k">Data Confidence</span><span class="v" style="color:${dc.band.color}">${dc.score}/100</span></div>`;})()}
+    </div>
+
+    <div class="score-row">
+      <div class="ring-card">
+        <div class="t">${t("paz_score")}</div>
+        <div class="ring">
+          <svg viewBox="0 0 96 96" width="96" height="96">
+            <circle cx="48" cy="48" r="42" stroke="var(--surface-3)" stroke-width="9" fill="none"/>
+            <circle cx="48" cy="48" r="42" stroke="${pazCol}" stroke-width="9" fill="none"
+              stroke-linecap="round" stroke-dasharray="${ringDash}" transform="rotate(-90 48 48)"/>
+          </svg>
+          <div class="pct" style="color:${pazCol}">${pazPct}</div>
+        </div>
+      </div>
+      <div class="ring-card">
+        <div class="t">${t("top_score")}</div>
+        <div class="ring">
+          <svg viewBox="0 0 96 96" width="96" height="96">
+            <circle cx="48" cy="48" r="42" stroke="var(--surface-3)" stroke-width="9" fill="none"/>
+            <circle cx="48" cy="48" r="42" stroke="var(--brand-2)" stroke-width="9" fill="none"
+              stroke-linecap="round" stroke-dasharray="${circ*top/100} ${circ}" transform="rotate(-90 48 48)"/>
+          </svg>
+          <div class="pct" style="color:var(--brand-2)">${top}</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:4px"><span class="cat-badge" style="color:${cat.color}">${L2(cat)}</span></div>
+    <div class="statusline"><span class="dot" style="background:${band.color}"></span>${esc(L.lead_status)}</div>
+
+    <div style="margin-top:14px">
+      <div class="section-h" style="margin-top:0">PAZ • A–G</div>
+      <div class="bd">${["A","B","C","D","E","F","G"].map(k=>{
+        const maxByCat={A:20,B:15,C:15,D:15,E:15,F:10,G:10}[k];
+        const v=paz.breakdown[k];
+        const pend=catPending(L,k);
+        const numHtml = pend ? `<span class="num" style="color:var(--mediu)">— ?</span>`
+                             : `<span class="num">${v}/${maxByCat}</span>`;
+        const barHtml = pend ? `<div class="bar"><i style="width:0%"></i></div>`
+                             : `<div class="bar"><i style="width:${Math.round(v/maxByCat*100)}%"></i></div>`;
+        return `<div class="bd-item" style="${pend?'opacity:.6':''}"><div class="bd-top"><span class="lbl">${t("paz_"+k)}</span>${numHtml}</div>
+          ${barHtml}</div>`;
+      }).join("")}</div>
+    </div>
+    ${whyRailCard(L)}
+  </div>`;
+}
+
+/* ---------- Egy yes/no kapcsoló ---------- */
+function toggle(L,field,label,sub){
+  return `<div class="toggle" data-toggle="${field}">
+    <span>${label}${sub?`<small>${sub}</small>`:""}</span>
+    <span class="switch ${L[field]?"on":""}" role="switch"></span>
+  </div>`;
+}
+/* ---------- Háromállapotú rendszer-kérdés: ? pending / ✓ van / ✕ hiányzik ---------- */
+function triToggle(L,field,label,sub){
+  const v=L[field]; const yes=v===true, no=v===false, pend=(v==null);
+  return `<div class="toggle tri-row ${pend?"pending":""}" data-tri="${field}">
+    <span>${label}${sub?`<small>${sub}</small>`:""}</span>
+    <span class="tri">
+      <button type="button" class="trib y ${yes?"on":""}" data-val="yes" title="van / da">✓</button>
+      <button type="button" class="trib n ${no?"on":""}" data-val="no" title="nincs / nu">✕</button>
+    </span>
+  </div>`;
+}
+/* ---------- numerikus mező ---------- */
+function fnum(L,field,label,opts={}){
+  return `<div class="f ${opts.span?"span2":""}"><label>${label}${opts.req?' <span class="req">*</span>':""}</label>
+    <input class="num" type="number" step="${opts.step||"any"}" data-field="${field}" data-type="number" value="${L[field]??""}" ${opts.min!=null?`min="${opts.min}"`:""}>
+    ${opts.hint?`<span class="hint">${opts.hint}</span>`:""}</div>`;
+}
+function ftext(L,field,label,opts={}){
+  return `<div class="f ${opts.span?"span2":""}"><label>${label}${opts.req?' <span class="req">*</span>':""}</label>
+    <input type="${opts.type||"text"}" data-field="${field}" value="${esc(L[field]??"")}"></div>`;
+}
+function fsel(L,field,label,options){
+  return `<div class="f"><label>${label}</label><select data-field="${field}">
+    ${options.map(o=>`<option ${L[field]===o?"selected":""}>${esc(o)}</option>`).join("")}</select></div>`;
+}
+
+/* ================================================================
+   7) LÉPÉSEK TÖRZSE (spec 2.–14.)
+   ================================================================ */
+function stepBody(L){
+  if(state.step===1) return step1_realityCheck(L);
+  if(state.step===2) return step2_audit(L);
+  if(state.step===3) return step3_decision(L);
+  if(state.step===4) return step4_offer(L);
+  if(state.step===5) return step5_sales(L);
+  return step6_visit(L);
+}
+
+/* ---- 1. lépés: Reality Check / Önaudit (spec 2.–6.) ---- */
+function step1_realityCheck(L){
+  const v=validateAuditData(L);
+  const errHtml = v.errs.length? `<div class="alert err"><span class="ic">!</span><div>${v.errs.map(e=>esc(e.msg)).join("<br>")}</div></div>`:"";
+  const c=calculateProductionReality(L);
+  const inc = c.reality_status==="Data inconsistent" ? `<div class="alert info"><span class="ic">i</span><div><b>Date inconsistente</b><br>${t("inconsistent")}</div></div>`:"";
+  const networks=["Bosch Car Service","Castrol Service","AD Garage","AutoCheck","AutoMeister","Dr Auto","independent","other"];
+  const types=["mecanică generală","diagnoză","tinichigerie","vopsitorie","anvelope","ITP","flotă","mixt","premium","low-cost"];
+  return `<div class="card">
+    <div class="hero" style="margin:-20px -20px 18px;border-radius:14px 14px 0 0;border:0;border-bottom:1px solid var(--line);padding:30px 20px">
+      <div class="eyebrow">Oglinda realității</div>
+      <h1>${state.lang==="ro"?"Vrei să vezi cât potențial de producție rămâne nefolosit în service-ul tău?":"Szeretnéd látni, mennyi termelési potenciál marad kihasználatlanul a szervizedben?"}</h1>
+      <p>${state.lang==="ro"?"Completează auto-auditul. Sistemul calculează realitatea producției, Reality Index și scorul PAZ.":"Töltsd ki az önauditot. A rendszer kiszámolja a termelési realitást, a Reality Indexet és a PAZ pontszámot."}</p>
+    </div>
+
+    ${L.ri_ref ? `<div class="alert info" style="margin-bottom:6px"><span class="ic">i</span><div>
+      <b>${state.lang==="ro"?"Rezultat Reality Index (estimare)":"Reality Index eredmény (becslés)"}</b><br>
+      RI ${L.ri_ref.util??"—"}% · ${state.lang==="ro"?"pierdere":"veszteség"} ~${fmtRON(L.ri_ref.Xan??((L.ri_ref.X||0)*12))}/${state.lang==="ro"?"an":"év"} · ${state.lang==="ro"?"recuperabil":"visszanyerhető"} ~${fmtRON(L.ri_ref.Z||0)}/${state.lang==="ro"?"lună":"hó"}${L.ri_ref.tier?` · TIER ${L.ri_ref.tier}`:""}${L.ri_ref.pain?` · ${esc(L.ri_ref.pain)}`:""}<br>
+      <span style="color:var(--muted)">${state.lang==="ro"?"Câmpurile au fost completate automat din Reality Index. Auditul verifică și înlocuiește aceste estimări.":"A mezők automatikusan kitöltve a Reality Indexből. Az audit ezeket a becsléseket ellenőrzi és felülírja."}</span>
+      ${L.ri_turnover_derived?`<br><span style="color:var(--warn)">${state.lang==="ro"?"⚠ Cifra de afaceri a fost calculată invers din manoperă (proprietarul nu a dat-o) — de verificat la audit.":"⚠ A forgalom a manoperából lett visszaszámolva (a tulaj nem adta meg) — auditon ellenőrizni."}</span>`:""}
+    </div></div>`:""}
+
+    <div class="section-h">${state.lang==="ro"?"Date firmă":"Cégadatok"}</div>
+    <div class="fields">
+      ${ftext(L,"service_name",state.lang==="ro"?"Nume service":"Szerviz neve",{req:1})}
+      ${ftext(L,"legal_company_name",state.lang==="ro"?"Denumire legală":"Cégnév")}
+      ${ftext(L,"fiscal_code","CUI / Cod fiscal")}
+      ${ftext(L,"city",state.lang==="ro"?"Oraș":"Város")}
+      ${ftext(L,"county",state.lang==="ro"?"Județ":"Megye")}
+      ${ftext(L,"address",state.lang==="ro"?"Adresă":"Cím")}
+      ${ftext(L,"website","Website")}
+      ${ftext(L,"phone",state.lang==="ro"?"Telefon":"Telefon")}
+      ${ftext(L,"email","Email",{type:"email"})}
+      ${ftext(L,"contact_person",state.lang==="ro"?"Persoană contact":"Kapcsolattartó")}
+      ${ftext(L,"owner_name",state.lang==="ro"?"Proprietar":"Tulajdonos")}
+      ${ftext(L,"decision_maker",state.lang==="ro"?"Decident":"Döntéshozó")}
+      ${fsel(L,"network_affiliation",state.lang==="ro"?"Rețea":"Hálózat",networks)}
+      ${fsel(L,"service_type",state.lang==="ro"?"Tip service":"Szerviz típus",types)}
+    </div>
+
+    <div class="section-h">${state.lang==="ro"?"Structură operațională":"Működési alapadatok"}</div>
+    <div class="fields three">
+      ${fnum(L,"work_posts",state.lang==="ro"?"Posturi active":"Aktív munkaposzt",{min:0,step:1})}
+      ${fnum(L,"productive_people",state.lang==="ro"?"Productivi":"Termelő ember",{min:0,step:1,req:1})}
+      ${fnum(L,"mechanics",state.lang==="ro"?"Mecanici":"Szerelő",{min:0,step:1})}
+      ${fnum(L,"diagnosticians",state.lang==="ro"?"Diagnosticieni":"Diagnosztikus",{min:0,step:1})}
+      ${fnum(L,"tire_people",state.lang==="ro"?"Vulcanizatori":"Gumis",{min:0,step:1})}
+      ${fnum(L,"body_people",state.lang==="ro"?"Tinichigii":"Karosszériás",{min:0,step:1})}
+      ${fnum(L,"paint_people",state.lang==="ro"?"Vopsitori":"Fényező",{min:0,step:1})}
+      ${fnum(L,"reception_people",state.lang==="ro"?"Recepție":"Recepciós",{min:0,step:1})}
+      ${fnum(L,"admin_people",state.lang==="ro"?"Administrativ":"Adminisztratív",{min:0,step:1})}
+    </div>
+    <div class="q-list" style="margin-top:13px">
+      ${triToggle(L,"has_parts_processor",state.lang==="ro"?"Procesare piese dedicată?":"Külön alkatrész-feldolgozó?")}
+      ${triToggle(L,"has_followup_responsible",state.lang==="ro"?"Responsabil follow-up client?":"Ügyfélkövetési felelős?")}
+      ${triToggle(L,"has_scheduling_responsible",state.lang==="ro"?"Responsabil programări?":"Időpontfoglalási felelős?")}
+      ${triToggle(L,"has_daily_production_report",state.lang==="ro"?"Raport zilnic de producție?":"Napi termelési riport?")}
+      ${triToggle(L,"has_offer_tracking",state.lang==="ro"?"Urmărire oferte?":"Ajánlatkövetés?")}
+      ${triToggle(L,"has_callback_system",state.lang==="ro"?"Sistem de recontactare?":"Visszahívási rendszer?")}
+      ${triToggle(L,"has_digital_customer_db",state.lang==="ro"?"Bază de date clienți digitală?":"Digitális ügyféladatbázis?")}
+      ${triToggle(L,"has_digital_service_history",state.lang==="ro"?"Istoric service digital?":"Digitális szerviztörténet?")}
+      ${triToggle(L,"has_health_report",state.lang==="ro"?"Health Report / explicație client?":"Health Report / ügyfélmagyarázat?")}
+      ${triToggle(L,"has_quality_control",state.lang==="ro"?"Control calitate după lucrare?":"Minőségellenőrzés munka után?")}
+      ${triToggle(L,"has_digital_communication",state.lang==="ro"?"Comunicare WhatsApp / email?":"WhatsApp / email kommunikáció?")}
+      ${triToggle(L,"owner_commits_pilot",state.lang==="ro"?"Conducerea acceptă pilot 30 zile?":"A vezető vállalja a 30 napos pilotot?")}
+    </div>
+
+    <div class="section-h">${state.lang==="ro"?"Inputuri financiare și de producție":"Pénzügyi és termelési inputok"}</div>
+    <div class="fields three">
+      ${fnum(L,"monthly_turnover_total",state.lang==="ro"?"Cifră afaceri lunară (RON)":"Havi forgalom (RON)",{min:0,req:1})}
+      <div class="f"><label>${state.lang==="ro"?"Venituri externe?":"Külső bevétel?"}</label>${toggle(L,"external_income_exists","")}</div>
+      ${fnum(L,"external_income_percent","% venit extern",{min:0})}
+      ${fnum(L,"parts_percent",state.lang==="ro"?"% piese":"% alkatrész",{min:0,req:1})}
+      ${fnum(L,"labor_percent",state.lang==="ro"?"% manoperă":"% munkadíj",{min:0,req:1})}
+      ${fnum(L,"hourly_rate",state.lang==="ro"?"Tarif orar (RON)":"Óradíj (RON)",{min:0,req:1})}
+      ${fnum(L,"working_days_per_month",state.lang==="ro"?"Zile lucrătoare/lună":"Munkanap/hó",{min:1,step:1})}
+      ${fnum(L,"target_billable_hours_per_day_per_productive",state.lang==="ro"?"Ore facturabile/zi/productiv":"Számlázható óra/nap/termelő")}
+      ${fnum(L,"target_billable_hours_per_day_per_post",state.lang==="ro"?"Ore facturabile/zi/post":"Számlázható óra/nap/poszt")}
+      ${recoveryField(L)}
+    </div>
+
+    ${errHtml}${inc}
+
+    <div class="nav-actions">
+      <span></span>
+      <button class="btn primary" id="wantBtn">${state.lang==="ro"?"Vreau audit Red Assistance →":"Akarom a bemérést →"}</button>
+    </div>
+    <div class="alert info" style="margin-top:12px"><span class="ic">i</span><div>${state.lang==="ro"?'Butonul „Vreau" pornește un proces de vânzare — NU înseamnă parteneriat automat.':'Az „Akarom" gomb értékesítési folyamatot indít — NEM jelent automatikus partnerséget.'}</div></div>
+  </div>`;
+}
+
+/* ---- 2. lépés: Audit (spec 10.) ---- */
+function step2_audit(L){
+  const rep=generateAuditReport(L);
+  const flagsHtml = rep.flags.length
+    ? `<div class="chips">${rep.flags.map(f=>`<span class="chip danger">${esc(L2(f))}</span>`).join("")}</div>`
+    : `<div class="alert ok"><span class="ic">✓</span>${state.lang==="ro"?"Niciun risc critic detectat.":"Nincs kritikus kockázat."}</div>`;
+  return `<div class="card">
+    <h2><span data-i="step2">Audit</span> <span class="pill">${esc(L.lead_status)}</span></h2>
+    <div class="lead-sub">${state.lang==="ro"?"Verificați datele, completați evaluarea strategică, finalizați scorul PAZ.":"Ellenőrizd az adatokat, töltsd ki a stratégiai értékelést, véglegesítsd a PAZ pontot."}</div>
+
+    <div class="section-h">${state.lang==="ro"?"Auditor":"Auditor"}</div>
+    <div class="fields">
+      ${ftext(L,"auditor_name",state.lang==="ro"?"Nume auditor":"Auditor neve")}
+      ${ftext(L,"audit_date",state.lang==="ro"?"Data audit":"Audit dátuma",{type:"date"})}
+    </div>
+
+    <div class="section-h">${state.lang==="ro"?"Voință managerială":"Vezetői akarat"}</div>
+    <div class="q-list">
+      ${triToggle(L,"accepts_report",state.lang==="ro"?"Acceptă raportul lunar?":"Elfogadja a havi riportot?")}
+      ${triToggle(L,"accepts_standard",state.lang==="ro"?"Acceptă standardul Red Assistance?":"Elfogadja a Red Assistance standardot?")}
+    </div>
+
+    <div class="section-h">${state.lang==="ro"?"Evaluare strategică (0–100)":"Stratégiai értékelés (0–100)"}</div>
+    <div class="fields">
+      ${rangeField(L,"local_influence",state.lang==="ro"?"Influență locală":"Helyi befolyás")}
+      ${rangeField(L,"network_influence_score",state.lang==="ro"?"Influență rețea":"Hálózati kapcsolat")}
+      ${rangeField(L,"reference_value",state.lang==="ro"?"Valoare de referință":"Referenciaérték")}
+      ${rangeField(L,"growth_potential",state.lang==="ro"?"Potențial de creștere":"Növekedési potenciál")}
+    </div>
+
+    <div class="section-h">${state.lang==="ro"?"Încredere date (prompt 10.)":"Adatbiztonság (prompt 10.)"}</div>
+    <div class="q-list">
+      ${toggle(L,"dc_turnover_verified",state.lang==="ro"?"Cifra de afaceri verificată? (20p)":"Forgalom igazolt? (20p)")}
+      ${toggle(L,"dc_rate_verified",state.lang==="ro"?"Tarif orar verificat? (15p)":"Óradíj igazolt? (15p)")}
+      ${toggle(L,"dc_productive_verified",state.lang==="ro"?"Nr. productivi verificat? (15p)":"Produktív létszám igazolt? (15p)")}
+      ${toggle(L,"dc_posts_verified",state.lang==="ro"?"Nr. posturi verificat? (15p)":"Munkaposztok igazolt? (15p)")}
+      ${toggle(L,"dc_billing_visible",state.lang==="ro"?"Raport/factură/sistem vizibil? (20p)":"Riport/számla/rendszeradat látható? (20p)")}
+      ${toggle(L,"dc_auditor_checked",state.lang==="ro"?"Date verificate de auditor? (15p)":"Auditor által ellenőrizve? (15p)")}
+    </div>
+    ${(()=>{const dc=calculateDataConfidence(L);return `<div class="alert ${dc.low?'warn':'ok'}" style="margin-top:10px"><span class="ic">${dc.low?'!':'✓'}</span>
+      <div><b>Data Confidence: ${dc.score}/100</b> — <span style="color:${dc.band.color}">${L2(dc.band)}</span>${dc.low?'<br>'+(state.lang==="ro"?"Sub 40: nu se calculează potențial final — Verification Required.":"40 alatt: nincs végleges potenciál — Verification Required."):''}</div></div>`;})()}
+
+    <div class="section-h">${state.lang==="ro"?"Risk Flags":"Kockázati jelek"}</div>
+    ${flagsHtml}
+
+    <div class="section-h">${state.lang==="ro"?"Override PAZ (opțional, se loghează)":"PAZ felülírás (opcionális, naplózva)"}</div>
+    <div class="fields">
+      ${fnum(L,"paz_override",state.lang==="ro"?"Scor manual (0–100)":"Kézi pont (0–100)",{min:0})}
+      ${ftext(L,"override_reason",state.lang==="ro"?"Motiv":"Indok")}
+    </div>
+
+    <div class="alert ${rep.cat.key==="notready"||rep.cat.key==="verify"?"warn":"ok"}"><span class="ic">★</span>
+      <div><b>${L2(rep.cat)}</b> — PAZ ${rep.paz.total}/100 · Top1000 ${rep.top}<br>
+      ${state.lang==="ro"?"Recomandare ofertă":"Ajánlási javaslat"}: <b>${L2(rep.reco)}</b></div></div>
+
+    <div class="nav-actions">
+      <button class="btn" data-goto="1">← ${t("back")}</button>
+      <button class="btn primary" id="auditDone">${state.lang==="ro"?"Audit finalizat →":"Audit kész →"}</button>
+    </div>
+  </div>`;
+}
+function rangeField(L,field,label){
+  return `<div class="f"><label>${label} — <span class="mono" data-rangeval="${field}">${L[field]}</span></label>
+    <input type="range" min="0" max="100" data-field="${field}" data-type="number" data-range="1" value="${num(L[field])}"></div>`;
+}
+
+/* ---- 3. lépés: Döntés (spec 11.) ---- */
+function step3_decision(L){
+  const s=sellabilityCheck(L);
+  const sug=suggestDecision(L);
+  const c=calculateProductionReality(L);
+  const opts=["Go","Conditional Go","Hold","No-Go","Verification Required"];
+  const cur=L.decision||sug;
+  const gate=canGenerateOffer({...L,decision:cur});
+  const ro=state.lang==="ro";
+  const cond=(ok,label,sub)=>`<div class="cond ${ok?"ok":"no"}"><span class="ci">${ok?"✓":"✕"}</span><div><b>${label}</b><small>${sub}</small></div></div>`;
+  const vCol=s.canSell?"var(--sanatos)":"var(--critic)";
+  return `<div class="card">
+    <h2><span data-i="step3">Decizie</span> <span class="pill">${ro?"3 condiții":"3 feltétel"}</span></h2>
+    <div class="lead-sub">${ro?"Aici decidem NOI: putem vinde sau nu. Reality Index dă doar mărimea durerii — momeala, nu verdictul.":"Itt MI döntünk: árulhatunk vagy nem. A Reality Index csak a fájdalom méretét adja — a csali, nem az ítélet."}</div>
+
+    <div class="verdict" style="border-color:${vCol};color:${vCol}">
+      <div class="vbig">${s.canSell?t("verdict_sell"):t("verdict_nosell")}</div>
+      <div class="vsize">${t("pain_size")}: <b>${Math.round(s.painRatio*100)}%</b> · ${ro?"Utilizare":"Kihasználtság"} ${round1(c.utilization_rate)}%</div>
+    </div>
+
+    <div class="conds">
+      ${cond(s.structureKnown, t("cond_structure"), t("cond_structure_s"))}
+      ${cond(s.hasPain,        t("cond_pain"),      t("cond_pain_s"))}
+      ${cond(s.hasMeans,       t("cond_means"),     t("cond_means_s"))}
+    </div>
+
+    <div class="alert info"><span class="ic">i</span><div>${ro?"Recomandare sistem":"Rendszer javaslat"}: <b>${esc(sug)}</b></div></div>
+
+    <div class="section-h">${ro?"Decizie finală":"Végső döntés"}</div>
+    <div class="fields">
+      <div class="f"><label>${ro?"Decizie":"Döntés"}</label>
+        <select data-field="decision">${opts.map(o=>`<option ${cur===o?"selected":""}>${o}</option>`).join("")}</select></div>
+      <div class="f"><label>Admin override</label>${toggle(L,"admin_override","")}</div>
+    </div>
+
+    <div class="alert ${gate.ok?"ok":"err"}"><span class="ic">${gate.ok?"✓":"✕"}</span><div>${gate.ok?(ro?"Generarea ofertei este permisă.":"Ajánlat generálása engedélyezett."):esc(gate.reason)}</div></div>
+
+    <div class="nav-actions">
+      <button class="btn" data-goto="2">← ${t("back")}</button>
+      <button class="btn primary" id="decDone">${ro?"Confirmă decizia →":"Döntés rögzítése →"}</button>
+    </div>
+  </div>`;
+}
+
+/* ---- 4. lépés: Árajánlat (spec 12.) ---- */
+function step4_offer(L){
+  const rep=generateAuditReport(L);
+  const gate=rep.reco.gate;
+  if(!gate.ok){
+    return `<div class="card">
+      <h2><span data-i="step4">Ofertă</span></h2>
+      <div class="alert err"><span class="ic">✕</span><div><b>${state.lang==="ro"?"Ofertă blocată":"Ajánlat tiltva"}</b><br>${esc(gate.reason)}</div></div>
+      <div class="nav-actions"><button class="btn" data-goto="3">← ${t("back")}</button><span></span></div>
+    </div>`;
+  }
+  const c=rep.c;
+  return `<div class="card">
+    <h2><span data-i="step4">Ofertă</span> <span class="pill">${rep.reco.type} · ${esc(rep.reco.code)}</span></h2>
+    <div class="lead-sub">${state.lang==="ro"?"Oferta se bazează pe audit, nu pe o listă de prețuri.":"Az ajánlat az auditra épül, nem árlistára."}</div>
+
+    <div class="fields">
+      ${fnum(L,"monthly_fee",state.lang==="ro"?"Taxă lunară (RON)":"Havi díj (RON)",{min:0})}
+      ${ftext(L,"package",state.lang==="ro"?"Pachet":"Csomag")}
+    </div>
+    <div class="f span2" style="margin-top:13px"><label>${state.lang==="ro"?"Note ofertă":"Ajánlat megjegyzés"}</label>
+      <input type="text" data-field="offer_notes" value="${esc(L.offer_notes)}"></div>
+
+    <div class="report">
+      <h3>${L2(rep.reco)} — ${esc(L.service_name||"")}</h3>
+      <ol>
+        <li><b>${state.lang==="ro"?"Sumar audit":"Audit összefoglaló"}:</b> ${L2(rep.cat)} · PAZ ${rep.paz.total}/100 · Reality Index ${round1(c.utilization_rate)}%</li>
+        <li><b>${state.lang==="ro"?"Realitate producție":"Termelési realitás"}:</b> ${fmtH(c.implied_labor_hours)} / ${fmtH(c.effective_capacity)}</li>
+        <li><b>${state.lang==="ro"?"Potențial nevalorificat":"Kihasználatlan potenciál"}:</b> ${fmtRON(c.lost_labor_potential)} → ${state.lang==="ro"?"recuperabil":"visszanyerhető"} ${fmtRON(c.realistic_recoverable)} (${state.lang==="ro"?"sigur 49% → ":"biztos 49% → "}${Math.round(c.recovery_P*100)}%)</li>
+        <li><b>${state.lang==="ro"?"Soluție Red Assistance":"Red Assistance megoldás"}:</b> ${state.lang==="ro"?"flux minim + Health Report + follow-up + raport lunar":"minimum folyamat + Health Report + follow-up + havi riport"}</li>
+        <li><b>${state.lang==="ro"?"Pilot 30 zile":"30 napos pilot"}:</b> 30 / 60 / 90 ${state.lang==="ro"?"verificare":"ellenőrzés"}</li>
+        <li><b>${state.lang==="ro"?"Taxă / pachet":"Díj / csomag"}:</b> ${fmtRON(L.monthly_fee)} · ${esc(L.package||"—")}</li>
+        <li><b>${state.lang==="ro"?"Responsabil partener":"Partner felelőse"}:</b> ${esc(L.decision_maker||L.contact_person||"—")}</li>
+        <li><b>${state.lang==="ro"?"Următorul punct de decizie":"Következő döntési pont"}:</b> ${state.lang==="ro"?"semnare pilot":"pilot aláírás"}</li>
+      </ol>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn" data-goto="3">← ${t("back")}</button>
+      <div class="row">
+        <button class="btn" id="offerCreate">${state.lang==="ro"?"Creează ofertă":"Ajánlat létrehozása"}</button>
+        <button class="btn primary" id="offerSend">${state.lang==="ro"?"Ofertă trimisă →":"Ajánlat elküldve →"}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ===== TÉTLENSÉG ÁRA — a kényszer motorja (igazságból, nem nyomásból).
+   A havi megerősített zárolt RON nem egyszeri: minden döntés nélküli hónap újra elfolyik.
+   Csak konzisztens adaton (reality_status OK) ad konkrét számot — különben „előbb ellenőrizz”. */
+function costOfInaction(L){
+  const w = whyDiagnosis(L), c = calculateProductionReality(L), sell = sellabilityCheck(L);
+  const valid = c.reality_status==="OK";
+  const perMonth = valid ? num(c.realistic_recoverable) : 0;   /* P-alapú havi visszanyerhető */
+  const certain  = valid ? num(c.recoverable_certain) : 0;     /* biztos 49% padló */
+  return { perMonth, certain, per3:perMonth*3, perYear:perMonth*12, P:c.recovery_P,
+    valid, canSell:sell.canSell, diag:(w.primary&&w.primary.diag)||w.blindOverlay||null };
+}
+
+/* ===== ZÁRÓ MODUL — vezetett zárás (Nagy Béla 6 lépés), auto-behelyettesítés.
+   A sales-es felolvassa; a kényszer a mért, visszatérő zárolt RON-ból jön, nem nyomásból. */
+function closingModule(L){
+  const ro = state.lang==="ro";
+  const ci = costOfInaction(L);
+  const dm = esc(L.decision_maker||L.contact_person|| (ro?"decident":"döntéshozó"));
+  const dt = L.next_step_date ? esc(L.next_step_date) : (ro?"[dată]":"[dátum]");
+  const head = ro?"Modul de închidere · script ghidat":"Záró Modul · vezetett script";
+  if(!ci.canSell){
+    return `<div class="report" style="border-color:var(--slab)"><div class="section-h" style="margin-top:0">${head}</div>
+      <div class="alert info"><span class="ic">i</span><div>${ro?"Încă nu închidem — verdictul nu e „PUTEM VINDE”. Fără durere/structură/mijloace nu forțăm decizia.":"Még nem zárunk — a verdikt nem „ÁRULHATUNK”. Fájdalom/struktúra/eszköz nélkül nem kényszerítünk döntést."}</div></div></div>`;
+  }
+  if(!ci.valid){
+    return `<div class="report"><div class="section-h" style="margin-top:0">${head}</div>
+      <div class="alert err"><span class="ic">!</span><div>${ro?"Datele nu sunt consistente — verifică înainte de a folosi cifra în închidere.":"Az adat nem konzisztens — ellenőrizd, mielőtt a számot zárásban használod."}</div></div></div>`;
+  }
+  const diag = ci.diag?esc(ci.diag):(ro?"[diagnostic]":"[diagnózis]");
+  const pm = fmtRON(ci.perMonth), p3 = fmtRON(ci.per3);
+  const li = (n,txt)=>`<li><b>${n}.</b> ${txt}</li>`;
+  return `<div class="report" style="border-color:var(--brand)"><div class="section-h" style="margin-top:0">${head}</div>
+    <ol style="line-height:1.55">
+      ${li(ro?"Orientare":"Orientáció", ro?"„Ai spus că asta te doare cel mai mult — exact asta am măsurat.”":"„Azt mondtad, ez fáj legjobban — pontosan ezt mértük.”")}
+      ${li(ro?"Diagnostic":"Diagnózis", ro?`„Codul principal: <b>${diag}</b>. Din cauza asta se blochează <b>${pm}/lună</b> — în fiecare lună, cât timp nu există sistem.”`:`„A fő hibakód: <b>${diag}</b>. Emiatt havonta <b>${pm}</b> áll meg — minden hónapban, amíg nincs rendszer.”`)}
+      ${li(ro?"Înțelegere":"Megértés", ro?"„Nu e lipsă de clienți. E lipsă de sistem. Exact acest sistem îl construim.”":"„Ez nem ügyfélhiány. Rendszerhiba. Pontosan ezt a rendszert építjük.”")}
+      ${li(ro?"Închidere":"Zárás", ro?`„Două drumuri: ori pe <b>${dt}</b> pornește pilotul cu ${dm}, ori cei <b>${pm}/lună</b> curg mai departe. 3 luni de amânare = <b>${p3}</b>. Pe care îl alegi?”`:`„Két út: vagy <b>${dt}</b>-án indul a pilot (${dm}), vagy a <b>${pm}/hó</b> tovább folyik. 3 hónap halogatás = <b>${p3}</b>. Melyiket választod?”`)}
+    </ol>
+    <div class="alert info" style="margin-top:8px"><span class="ic">↳</span><div><b>${ro?"Blocant „poate”":"„Talán” blokkoló"}:</b> ${ro?"„Care e acel singur dat care îți lipsește ca să decizi acum?” → înapoi la înțelegere, nu amânare.":"„Mi az az egy adat, ami alapján most nem tudsz dönteni?” → vissza a megértéshez, nem halogatás."}</div></div></div>`;
+}
+
+/* ---- 5. lépés: Értékesítés (spec 13.) ---- */
+function step5_sales(L){
+  const statuses=determineSalesStatus();
+  const objKeys=Object.keys(OBJECTIONS);
+  const sel=L.main_objection&&OBJECTIONS[L.main_objection]?OBJECTIONS[L.main_objection]:null;
+  return `<div class="card">
+    <h2><span data-i="step5">Vânzare</span> <span class="pill">${esc(L.lead_status)}</span></h2>
+    <div class="lead-sub">${state.lang==="ro"?"Câmpurile obligatorii după fiecare ofertă: pas următor, dată, responsabil.":"Kötelező mezők minden ajánlat után: következő lépés, dátum, felelős."}</div>
+
+    ${closingModule(L)}
+
+    <div class="fields">
+      <div class="f"><label>Status</label><select data-field="sales_status">
+        <option value="">—</option>${statuses.map(s=>`<option ${L.sales_status===s?"selected":""}>${s}</option>`).join("")}</select></div>
+      ${ftext(L,"next_step",state.lang==="ro"?"Pas următor *":"Következő lépés *")}
+      ${ftext(L,"next_step_date",state.lang==="ro"?"Dată pas următor *":"Következő lépés dátuma *",{type:"date"})}
+      ${ftext(L,"responsible_person",state.lang==="ro"?"Responsabil *":"Felelős *")}
+      <div class="f"><label>${state.lang==="ro"?"Obiecție principală":"Fő kifogás"}</label>
+        <select data-field="main_objection"><option value="">—</option>
+        ${objKeys.map(k=>`<option value="${k}" ${L.main_objection===k?"selected":""}>${esc(L2(OBJECTIONS[k]))}</option>`).join("")}</select></div>
+      <div class="f"><label>${state.lang==="ro"?"Status decident":"Döntéshozó státusz"}</label>
+        <select data-field="decision_maker_status"><option value="">—</option>
+        ${["Prezent / Jelen","Identificat / Azonosított","Lipsă / Hiányzik"].map(s=>`<option ${L.decision_maker_status===s?"selected":""}>${s}</option>`).join("")}</select></div>
+      ${ftext(L,"expected_close_date",state.lang==="ro"?"Dată estimată închidere":"Várható lezárás",{type:"date"})}
+    </div>
+
+    ${sel?`<div class="alert info"><span class="ic">↳</span><div><b>${state.lang==="ro"?"Logică răspuns":"Válaszlogika"} — ${esc(L2(sel))}:</b><br>${esc(state.lang==="ro"?sel.resp_ro:sel.resp_hu)}</div></div>`:""}
+
+    <div class="nav-actions">
+      <button class="btn" data-goto="4">← ${t("back")}</button>
+      <div class="row">
+        <button class="btn" id="salesReject">${state.lang==="ro"?"Respins":"Elutasítva"}</button>
+        <button class="btn primary" id="salesAccept">${state.lang==="ro"?"Acceptat →":"Elfogadva →"}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---- 6. lépés: Látogatás / aktiválás (spec 14.) ---- */
+function step6_visit(L){
+  const pg=canRunPilot(L);   /* R1: rechemare pilot-kapu (MASTER v1.0) */
+  const bk=bridgeKPI(L);     /* R2: KPI-híd (MASTER 5.3) */
+  const items=[
+    ["v1",state.lang==="ro"?"Decident prezent?":"Döntéshozó jelen?"],
+    ["v2",state.lang==="ro"?"Recepție prezentă?":"Recepciós jelen?"],
+    ["v3",state.lang==="ro"?"Șef atelier / productiv prezent?":"Műhelyvezető / termelő jelen?"],
+    ["v4",state.lang==="ro"?"Responsabil Red Assistance numit?":"Red Assistance felelős kijelölve?"],
+    ["v5",state.lang==="ro"?"Primele 10 mașini alese?":"Első 10 autó kiválasztva?"],
+    ["v6",state.lang==="ro"?"Primul flux Health Report definit?":"Első Health Report folyamat megvan?"],
+    ["v7",state.lang==="ro"?"Verificare 30/60/90 fixată?":"30/60/90 napos ellenőrzés rögzítve?"],
+    ["v8",state.lang==="ro"?"Dată start pilot stabilită?":"Pilot kezdődátum megvan?"],
+  ];
+  const done=items.filter(([k])=>L.visit[k]).length;
+  return `<div class="card">
+    <h2><span data-i="step6">Vizită</span> <span class="pill">${done}/8</span></h2>
+    <div class="lead-sub">${state.lang==="ro"?"Vizită de încredere, definirea pilotului de 30 zile și a primilor pași.":"Bizalomépítő látogatás, a 30 napos pilot és az első lépések meghatározása."}</div>
+
+    <div class="fields">
+      ${ftext(L,"visit_date",state.lang==="ro"?"Dată vizită":"Látogatás dátuma",{type:"date"})}
+      <div class="f"><label>${state.lang==="ro"?"Status vizită":"Látogatás státusz"}</label>
+        <select data-field="visit_status"><option value="">—</option>
+        ${["Partner Visit Scheduled","Visit Completed","Follow-up Required","Onboarding Started","Pilot Active","Active Red Assistance Partner"].map(s=>`<option ${L.visit_status===s?"selected":""}>${s}</option>`).join("")}</select></div>
+    </div>
+
+    <div class="section-h">Checklist</div>
+    <div class="q-list">${items.map(([k,lab])=>toggleVisit(L,k,lab)).join("")}</div>
+
+    <div class="section-h">${state.lang==="ro"?"Pregătire rechemare — poartă pilot (R1)":"Rechemare-készség — pilot-kapu (R1)"}</div>
+    <div class="q-list">
+      <div class="toggle"><span>${state.lang==="ro"?"Responsabil listă rechemare numit (Manual 6.5)":"Nevesített rechemare-felelős (Manual 6.5)"}</span><span class="switch ${pg.hasOperator?"on":""}"></span></div>
+      <div class="toggle"><span>${state.lang==="ro"?"Bază de clienți contactabilă (Manual 6.1)":"Kontaktolható ügyfélbázis (Manual 6.1)"}</span><span class="switch ${pg.hasBase?"on":""}"></span></div>
+      <div class="toggle"><span>${state.lang==="ro"?"Sistem de rechemare — recomandat (Manual 6.2)":"Visszahívó rendszer — ajánlott (Manual 6.2)"}</span><span class="switch ${pg.hasSystem?"on":""}"></span></div>
+    </div>
+    ${pg.pass?"":`<div style="color:#e0564f;font-size:.85rem;margin-top:8px;line-height:1.4">${pg.reason==="no_operator"?t("gate_recall_operator"):t("gate_recall_base")}</div>`}
+
+    <div class="section-h">${state.lang==="ro"?"Rezultat pilot 30 zile — puntea KPI (Manual 27.)":"Pilot eredmény 30 nap — KPI-híd (Manual 27.)"}</div>
+    <div class="fields">
+      ${ftext(L,"pilot_contacted",state.lang==="ro"?"Clienți contactați":"Kontaktált ügyfél",{type:"number"})}
+      ${ftext(L,"pilot_responded",state.lang==="ro"?"Răspunsuri":"Válaszok",{type:"number"})}
+      ${ftext(L,"pilot_scheduled",state.lang==="ro"?"Programări":"Időpontok",{type:"number"})}
+      ${ftext(L,"pilot_jobs",state.lang==="ro"?"Lucrări efectuate":"Elvégzett munkák",{type:"number"})}
+      ${ftext(L,"pilot_revenue",state.lang==="ro"?"Venit pilot (RON)":"Pilot bevétel (RON)",{type:"number"})}
+    </div>
+    ${bk.venit>0?`<div style="margin-top:10px;padding:12px 14px;border:1px solid #2f6b45;border-radius:8px;background:rgba(76,175,106,.08)">
+      <div style="font-size:1.7rem;font-weight:800;color:#4caf6a;line-height:1">${Math.round(bk.ratio*100)}%</div>
+      <div style="font-size:.9rem;opacity:.85;margin:3px 0 8px">${state.lang==="ro"?`din partea lunară a pierderii anuale (~${fmtRON(bk.XanMonthly)}/lună)`:`az éves veszteség havi részéből (~${fmtRON(bk.XanMonthly)}/hó)`}</div>
+      <div style="font-size:.85rem;line-height:1.45">${state.lang==="ro"?`Cele 30 de zile au recuperat ${Math.round(bk.ratio*100)}% — doar cu pârghia rechemare, cea mai ieftină. Pârghia de producție și de preț nici nu e pornită încă.`:`A 30 nap ennyit hozott vissza — csak a rechemare-karral, a legolcsóbbal. A termelési és árazási kar még nincs bekapcsolva.`}</div>
+      <div style="font-size:.8rem;opacity:.7;margin-top:7px">${bk.contacted} ${state.lang==="ro"?"contactați":"kontakt"} → ${bk.responded} ${state.lang==="ro"?"răspuns":"válasz"} → ${bk.scheduled} ${state.lang==="ro"?"programări":"időpont"} → ${bk.jobs} ${state.lang==="ro"?"lucrări":"munka"} → <b>${fmtRON(bk.venit)}</b></div>
+    </div>`:""}
+
+    <div class="nav-actions">
+      <button class="btn" data-goto="5">← ${t("back")}</button>
+      <div class="row">
+        <button class="btn" id="visitSchedule">${state.lang==="ro"?"Programează vizită":"Látogatás ütemezése"}</button>
+        <button class="btn primary" id="pilotStart" ${pg.pass?"":'disabled style="opacity:.45;cursor:not-allowed"'}>${state.lang==="ro"?"Activează pilot 30 zile →":"30 napos pilot indítása →"}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function toggleVisit(L,k,label){
+  return `<div class="toggle" data-vtoggle="${k}"><span>${label}</span><span class="switch ${L.visit[k]?"on":""}"></span></div>`;
+}
+
+/* ================================================================
+   8) DASHBOARD (spec 16.)
+   ================================================================ */
+function viewDashboard(){
+  const ls=state.leads;
+  const cnt=s=>ls.filter(l=>l.lead_status===s).length;
+  const auditReq = ls.filter(l=>FLOW.indexOf(l.lead_status)>=1).length;
+  const auditDone= ls.filter(l=>FLOW.indexOf(l.lead_status)>=2).length;
+  const decided = l=>l.decision;
+  const go=ls.filter(l=>l.decision==="Go").length;
+  const cgo=ls.filter(l=>l.decision==="Conditional Go").length;
+  const nogo=ls.filter(l=>l.decision==="No-Go").length;
+  const offerC=ls.filter(l=>l.offer_created).length;
+  const offerS=ls.filter(l=>l.offer_sent).length;
+  const acc=ls.filter(l=>l.sales_status==="Accepted").length;
+  const pilot=ls.filter(l=>l.visit_status==="Pilot Active").length;
+  const active=ls.filter(l=>l.visit_status==="Active Red Assistance Partner"||l.lead_status==="Active Red Assistance Partner").length;
+
+  const avg=(fn)=> ls.length? Math.round(ls.reduce((a,l)=>a+fn(l),0)/ls.length) : 0;
+  const avgPaz=avg(l=>calculatePAZScore(l).total);
+  const avgRI=avg(l=>calculateProductionReality(l).utilization_rate);
+  const avgRate=avg(l=>num(l.hourly_rate));
+  const avgTO=avg(l=>num(l.monthly_turnover_total));
+  const top1000=ls.filter(eligibleTop1000).length;
+
+  const byCounty=groupCount(ls,l=>l.county||"—");
+  const byNet=groupCount(ls,l=>l.network_affiliation||"—");
+
+  const card=(t,v,sub)=>`<div class="kpi"><div class="t">${t}</div><div class="v">${v}${sub?` <small>${sub}</small>`:""}</div></div>`;
+  return `<div class="card"><h2>${t("nav_dash")}</h2>
+    <div class="lead-sub">${state.lang==="ro"?"Pâlnia de audit și vânzare Red Assistance.":"A Red Assistance audit- és értékesítési tölcsér."}</div>
+    <div class="kpis">
+      ${card(state.lang==="ro"?"Total leaduri":"Összes lead",ls.length)}
+      ${card("Audit Requested",auditReq)}
+      ${card("Audit Completed",auditDone)}
+      ${card("Top 1000",top1000)}
+      ${card("Go",go)}
+      ${card("Conditional Go",cgo)}
+      ${card("No-Go",nogo)}
+      ${card("Offer Sent",offerS)}
+      ${card("Accepted",acc)}
+      ${card("Pilot Active",pilot)}
+      ${card("Active Partner",active)}
+      ${card(state.lang==="ro"?"Ofertă creată":"Ajánlat kész",offerC)}
+    </div>
+    <div class="section-h" style="margin-top:24px">${state.lang==="ro"?"Medii":"Átlagok"}</div>
+    <div class="kpis">
+      ${card("PAZ avg",avgPaz,"/100")}
+      ${card("Reality Index avg",avgRI,"%")}
+      ${card(state.lang==="ro"?"Tarif orar avg":"Óradíj avg",avgRate,"RON")}
+      ${card(state.lang==="ro"?"Cifră lunară avg":"Havi forg. avg",new Intl.NumberFormat("ro-RO").format(avgTO),"RON")}
+    </div>
+    <div class="dist">
+      <div><div class="section-h">${state.lang==="ro"?"Distribuție pe județe":"Megyénkénti eloszlás"}</div>${distBars(byCounty)}</div>
+      <div><div class="section-h">${state.lang==="ro"?"Distribuție pe rețea":"Hálózatonkénti eloszlás"}</div>${distBars(byNet)}</div>
+    </div>
+  </div>`;
+}
+function groupCount(ls,fn){ const m={}; ls.forEach(l=>{const k=fn(l);m[k]=(m[k]||0)+1;}); return Object.entries(m).sort((a,b)=>b[1]-a[1]); }
+function distBars(pairs){
+  if(!pairs.length) return `<div class="empty">—</div>`;
+  const max=Math.max(...pairs.map(p=>p[1]));
+  return pairs.map(([k,v])=>`<div class="row-bar"><span class="nm">${esc(k)}</span>
+    <span class="bar"><i style="width:${Math.round(v/max*100)}%"></i></span><span class="ct">${v}</span></div>`).join("");
+}
+
+/* ================================================================
+   9) TOP 1000 (spec 15.)
+   ================================================================ */
+function eligibleTop1000(l){
+  const paz=calculatePAZScore(l).total;
+  const c=calculateProductionReality(l);
+  const cat=determinePartnerCategory(l).key;
+  return paz>=65 && c.reality_status!=="Data inconsistent" && l.decision_maker && l.decision_maker.trim()
+    && num(l.productive_people)>0 && cat!=="notready";
+}
+function viewTop1000(){
+  const ranked=[...state.leads].map(l=>({l, paz:calculatePAZScore(l).total, top:calculateTop1000Score(l),
+    cat:determinePartnerCategory(l), ri:calculateProductionReality(l).utilization_rate}));
+  const eligible=ranked.filter(r=>eligibleTop1000(r.l)).sort((a,b)=>b.top-a.top);
+  const conditional=ranked.filter(r=>r.cat.key==="conditional"||r.cat.key==="watchlist").sort((a,b)=>b.paz-a.paz);
+  const notReady=ranked.filter(r=>r.cat.key==="notready");
+  const verify=ranked.filter(r=>r.cat.key==="verify");
+
+  const tbl=(rows,withRank)=> rows.length?`<div class="tablewrap"><table>
+    <thead><tr>${withRank?"<th>#</th>":""}<th>${state.lang==="ro"?"Service":"Szerviz"}</th><th>${state.lang==="ro"?"Județ":"Megye"}</th><th>${state.lang==="ro"?"Rețea":"Hálózat"}</th><th>PAZ</th><th>Top1000</th><th>RI</th><th>${t("category")}</th></tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr>${withRank?`<td class="mono">${i+1}</td>`:""}
+      <td>${esc(r.l.service_name||"—")}</td><td>${esc(r.l.county||"—")}</td><td>${esc(r.l.network_affiliation)}</td>
+      <td class="mono"><b>${r.paz}</b></td><td class="mono">${r.top}</td><td class="mono">${round1(r.ri)}%</td>
+      <td><span class="tag" style="color:${r.cat.color}">${L2(r.cat)}</span></td></tr>`).join("")}</tbody></table></div>`
+    :`<div class="empty">—</div>`;
+
+  return `<div class="card"><h2>Top 1000</h2>
+    <div class="lead-sub">top1000_score = PAZ×0.70 + strategic×0.20 + network×0.10 — ${state.lang==="ro"?"eligibil doar dacă PAZ≥65, fără date inconsistente, cu decident.":"csak akkor, ha PAZ≥65, nincs adatellentmondás, van döntéshozó."}</div>
+    <div class="section-h">Top 100 / 1000 ${state.lang==="ro"?"național":"országos"}</div>
+    ${tbl(eligible.slice(0,1000),true)}
+    <div class="section-h">${state.lang==="ro"?"Conditional / high-potential":"Feltételes / magas potenciál"}</div>
+    ${tbl(conditional,false)}
+    <div class="section-h">Verification Required</div>
+    ${tbl(verify,false)}
+    <div class="section-h">Not Ready</div>
+    ${tbl(notReady,false)}
+  </div>`;
+}
+
+/* ================================================================
+   10) ESEMÉNYKEZELÉS
+   ================================================================ */
+function bindView(){
+  /* lead választó / új / törlés / export */
+  const lp=$("#leadPick"); if(lp) lp.onchange=e=>{ state.currentId=e.target.value; setStep(1); render(); };
+  const nl=$("#newLead"); if(nl) nl.onclick=()=>{ const L=createLead(); state.leads.unshift(L); state.currentId=L.id; setStep(1); persist(); render(); };
+  const dl=$("#delLead"); if(dl) dl.onclick=()=>{ state.leads=state.leads.filter(l=>l.id!==state.currentId); state.currentId=state.leads[0]?.id||null; persist(); render(); };
+  const ej=$("#eJson"); if(ej) ej.onclick=exportJSON;
+  const ec=$("#eCsv"); if(ec) ec.onclick=exportCSV;
+  const ep=$("#ePdf"); if(ep) ep.onclick=()=>window.print();
+
+  /* belépő hub: RI-lead megnyitása + kézi felvétel */
+  $$("[data-open]").forEach(el=>el.onclick=()=>{ state.currentId=el.dataset.open; state.view="audit"; setStep(1); persist(); render(); });
+  const mn=$("#manualNew"); if(mn) mn.onclick=()=>{
+    const L=createLead(); L.service_name = state.lang==="ro"?"Service manual":"Kézi szerviz";
+    state.leads.unshift(L); state.currentId=L.id; setStatus(L,"Reality Check Started");
+    state.view="audit"; setStep(1); persist(); render();
+  };
+
+  /* stepper navigáció */
+  $$(".step").forEach(s=>s.onclick=()=>{ syncForm(); setStep(+s.dataset.step); persist(); render(); });
+  $$("[data-goto]").forEach(b=>b.onclick=()=>{ syncForm(); setStep(+b.dataset.goto); persist(); render(); });
+
+  /* mező-input → lead frissítés + readout (fókuszvesztés nélkül) */
+  $$("[data-field]").forEach(el=>{
+    const ev = el.tagName==="SELECT"?"change":"input";
+    el.addEventListener(ev,()=>{
+      const L=currentLead(); if(!L) return;
+      const f=el.dataset.field;
+      L[f] = el.dataset.type==="number" ? num(el.value) : el.value;
+      if(el.dataset.range){ const lbl=$(`[data-rangeval="${f}"]`); if(lbl) lbl.textContent=el.value; }
+      L.updatedAt=new Date().toISOString();
+      debouncedPersist();
+      updateRail();
+    });
+  });
+  /* yes/no kapcsolók */
+  $$("[data-toggle]").forEach(tg=>{
+    const f=tg.dataset.toggle; if(!f) return;
+    tg.querySelector(".switch").onclick=()=>{ const L=currentLead(); L[f]=!L[f]; tg.querySelector(".switch").classList.toggle("on",L[f]); debouncedPersist(); updateRailAndFlags(); };
+  });
+  $$("[data-tri]").forEach(tg=>{
+    const f=tg.dataset.tri; if(!f) return;
+    tg.querySelectorAll("button[data-val]").forEach(btn=>{
+      btn.onclick=()=>{ const L=currentLead(); const want=btn.dataset.val==="yes";
+        L[f] = (L[f]===want) ? null : want;            /* ugyanarra újra → vissza pending-be */
+        tg.querySelector(".trib.y").classList.toggle("on", L[f]===true);
+        tg.querySelector(".trib.n").classList.toggle("on", L[f]===false);
+        tg.classList.toggle("pending", L[f]==null);
+        debouncedPersist(); updateRailAndFlags();
+      };
+    });
+  });
+  $$("[data-vtoggle]").forEach(tg=>{
+    const k=tg.dataset.vtoggle;
+    tg.querySelector(".switch").onclick=()=>{ const L=currentLead(); L.visit[k]=!L.visit[k]; tg.querySelector(".switch").classList.toggle("on",L.visit[k]); debouncedPersist(); };
+  });
+
+  /* lépés-specifikus akciógombok */
+  bindStepActions();
+}
+
+function bindStepActions(){
+  const L=currentLead(); if(!L) return;
+  const want=$("#wantBtn"); if(want) want.onclick=()=>{
+    syncForm();
+    const v=validateAuditData(L);
+    if(!v.valid){ render(); return; } /* validáció blokkol */
+    setStatus(L,"Audit Requested");
+    setStep(2); persist(); render();
+  };
+  const ad=$("#auditDone"); if(ad) ad.onclick=()=>{ syncForm(); setStatus(L,"Audit Completed"); setStep(3); persist(); render(); };
+  const dd=$("#decDone"); if(dd) dd.onclick=()=>{
+    syncForm(); if(!L.decision) L.decision=suggestDecision(L);
+    setStatus(L,"Decision Needed");
+    setStep(L.decision==="No-Go" ? 3 : 4); persist(); render();
+  };
+  const oc=$("#offerCreate"); if(oc) oc.onclick=()=>{ syncForm(); L.offer_created=true; L.offer_type=generateOfferRecommendation(L).code; setStatus(L,"Offer Created"); persist(); render(); };
+  const os=$("#offerSend"); if(os) os.onclick=()=>{ syncForm(); L.offer_created=true; L.offer_sent=true; setStatus(L,"Offer Sent"); setStep(5); persist(); render(); };
+  const sa=$("#salesAccept"); if(sa) sa.onclick=()=>{ syncForm(); L.sales_status="Accepted"; setStatus(L,"Accepted/Rejected/Hold"); setStep(6); persist(); render(); };
+  const sr=$("#salesReject"); if(sr) sr.onclick=()=>{ syncForm(); L.sales_status="Rejected"; setStatus(L,"Accepted/Rejected/Hold"); persist(); render(); };
+  const vs=$("#visitSchedule"); if(vs) vs.onclick=()=>{ syncForm(); L.visit_status="Partner Visit Scheduled"; setStatus(L,"Partner Visit Scheduled"); persist(); render(); };
+  const ps=$("#pilotStart"); if(ps) ps.onclick=()=>{ syncForm(); if(!canRunPilot(L).pass){ render(); return; } L.visit_status="Pilot Active"; setStatus(L,"Pilot Active"); persist(); render(); };
+}
+
+/* DOM mezők beolvasása a lead-be (re-render előtti biztonsági szinkron) */
+function syncForm(){
+  const L=currentLead(); if(!L) return;
+  $$("[data-field]").forEach(el=>{ const f=el.dataset.field; L[f]= el.dataset.type==="number"?num(el.value):el.value; });
+}
+/* csak a jobb oldali műszer frissítése (fókuszmegtartás) */
+function updateRail(){ const r=$(".rail"); if(r){ r.innerHTML=railReadout(currentLead()); } }
+/* műszer + a kockázati chipek frissítése audit lépésben */
+function updateRailAndFlags(){ updateRail(); if(state.step===2||state.step===1){ const body=$("#stepBody"); /* a flag-ek csak re-renderrel frissülnek pontosan */ } }
+
+let _pt; function debouncedPersist(){ clearTimeout(_pt); _pt=setTimeout(persist,300); }
+
+/* ================================================================
+   11) EXPORTOK (spec 18.)
+   ================================================================ */
+function download(name,content,type){
+  const b=new Blob([content],{type}); const u=URL.createObjectURL(b);
+  const a=document.createElement("a"); a.href=u; a.download=name; a.click(); URL.revokeObjectURL(u);
+}
+function exportJSON(){
+  const L=currentLead(); if(!L) return; syncForm();
+  const rep=generateAuditReport(L);
+  const out={ input:L, computed:rep.c, paz:rep.paz, category:rep.cat.ro, top1000:rep.top,
+    flags:rep.flags.map(f=>f.ro), recommendation:rep.reco.code, status:L.lead_status, history:L.history };
+  download(`PAZ_${(L.service_name||"service").replace(/\s+/g,"_")}.json`, JSON.stringify(out,null,2), "application/json");
+}
+function exportCSV(){
+  if(!state.leads.length) return;
+  const cols=["service_name","city","county","network_affiliation","monthly_turnover_total","hourly_rate",
+    "productive_people","work_posts","paz","reality_index","data_confidence","top1000","category","decision","lead_status"];
+  const rows=state.leads.map(l=>{
+    const paz=calculatePAZScore(l).total, c=calculateProductionReality(l), top=calculateTop1000Score(l), dc=calculateDataConfidence(l).score;
+    return [l.service_name,l.city,l.county,l.network_affiliation,num(l.monthly_turnover_total),num(l.hourly_rate),
+      num(l.productive_people),num(l.work_posts),paz,round1(c.utilization_rate),dc,top,determinePartnerCategory(l).ro,l.decision,l.lead_status]
+      .map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",");
+  });
+  download("PAZ_leaduri.csv", cols.join(",")+"\n"+rows.join("\n"), "text/csv");
+}
+
+/* ================================================================
+   12) DEMO ADAT (spec 22.) — 1.000.000 RON példa → Data inconsistent
+   ================================================================ */
+function loadTestData(){
+  const L=createLead();
+  Object.assign(L,{
+    service_name:"Service Demo Mureș", legal_company_name:"Demo Service SRL", fiscal_code:"RO12345678",
+    city:"Târgu Mureș", county:"Mureș", network_affiliation:"Bosch Car Service", service_type:"mixt",
+    contact_person:"Ion Popescu", owner_name:"Ion Popescu", decision_maker:"Ion Popescu",
+    work_posts:10, productive_people:10, mechanics:7, diagnosticians:1, reception_people:1, admin_people:1,
+    monthly_turnover_total:1000000, external_income_exists:false, external_income_percent:0,
+    parts_percent:60, labor_percent:40, hourly_rate:180,
+    working_days_per_month:22, target_billable_hours_per_day_per_productive:6.5,
+    target_billable_hours_per_day_per_post:6.5, recovery_factor_percent:60,
+    has_parts_processor:true, has_scheduling_responsible:true, has_digital_customer_db:true,
+    owner_commits_pilot:true, local_influence:70, network_influence_score:60, reference_value:65, growth_potential:60
+  });
+  state.leads.unshift(L); state.currentId=L.id; state.view="audit"; setStep(1); persist(); render();
+}
+
+/* ================================================================
+   13) INIT
+   ================================================================ */
+$("#nav").addEventListener("click",e=>{ const b=e.target.closest("button[data-view]"); if(!b)return; syncForm(); state.view=b.dataset.view; persist(); render(); });
+$("#lang").addEventListener("click",e=>{ const b=e.target.closest("button[data-lang]"); if(!b)return; syncForm(); state.lang=b.dataset.lang; document.documentElement.lang=state.lang; persist(); render(); });
+$("#loadTest").addEventListener("click",loadTestData);
+
+loadState();
+drainInbox();
+if(!state.leads.length){ const L=createLead(); state.leads.push(L); state.currentId=L.id; }
+render();
+</script>
+</body>
+</html>

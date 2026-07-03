@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red Assistance Digital Ecosystem — Reality Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E1116; --panel:#161C24; --panel-2:#1C232D; --line:#2A323D;
+    --text:#E8ECF2; --muted:#8A95A5; --faint:#5C6675;
+    --loss:#FF5A2C; --warn:#F2B53D; --recover:#34C77B;
+    --shadow:0 18px 50px rgba(0,0,0,.45);
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #1A222D 0%, var(--ink) 55%) fixed,
+      var(--ink);
+    color:var(--text); font-family:"Inter",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    padding:18px;
+  }
+  .wrap{width:100%; max-width:560px; display:flex; flex-direction:column; gap:14px; flex:1}
+  .top{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .brand{display:flex; align-items:center; gap:10px; min-width:0}
+  .brand-txt{display:flex; flex-direction:column; line-height:1.06; min-width:0}
+  .brand-name{font-family:"Saira"; font-weight:700; font-size:.92rem; letter-spacing:.01em;
+    color:var(--text); white-space:nowrap}
+  .brand-name .r{color:var(--loss)}
+  .brand-sub{font-family:"Saira"; font-weight:600; font-size:.53rem; letter-spacing:.15em;
+    text-transform:uppercase; color:var(--muted); white-space:nowrap; margin-top:3px}
+  .brand-mod{font-family:"Saira"; font-weight:700; font-size:1.08rem; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--text); white-space:nowrap;
+    padding-left:12px; margin-left:2px; border-left:1px solid var(--line)}
+  @media (max-width:600px){
+    .brand-name{font-size:.82rem} .brand-sub{font-size:.47rem; letter-spacing:.1em}
+    .brand-mod{font-size:.88rem; padding-left:9px} .top{gap:6px}
+  }
+  @media (min-width:901px){
+    .brand-name{font-size:1rem} .brand-sub{font-size:.58rem}
+    .brand-mod{font-size:1.12rem; padding-left:14px}
+  }
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--loss);
+    box-shadow:0 0 0 4px rgba(255,90,44,.15)}
+  .lang{display:flex; gap:2px; background:var(--panel); border:1px solid var(--line);
+    border-radius:999px; padding:3px}
+  .lang button{all:unset; cursor:pointer; font-family:"Saira"; font-weight:600; font-size:.74rem;
+    letter-spacing:.05em; padding:5px 11px; border-radius:999px; color:var(--muted)}
+  .lang button[aria-pressed="true"]{background:var(--panel-2); color:var(--text)}
+  .bar{height:3px; background:var(--line); border-radius:2px; overflow:hidden}
+  .bar i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--warn),var(--loss));
+    transition:width .5s cubic-bezier(.4,0,.1,1)}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--r);
+    box-shadow:var(--shadow); padding:28px 24px; flex:1; display:flex; flex-direction:column;
+    min-height:420px; position:relative; overflow:hidden}
+  .eyebrow{font-family:"Saira"; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+    font-size:.7rem; color:var(--loss); margin-bottom:14px}
+  h1{font-family:"Saira"; font-weight:700; font-size:clamp(1.5rem,6vw,2.05rem); line-height:1.08;
+    margin:0 0 14px; letter-spacing:-.01em}
+  h1 .hl{color:var(--loss)}
+  p.lead{color:var(--text); font-size:1.02rem; margin:0 0 12px}
+  p.sub{color:var(--muted); font-size:.95rem; margin:0 0 12px}
+  .grow{flex:1}
+  .timeline{margin:18px 0; border:1px solid var(--line); border-radius:10px; padding:16px 14px;
+    background:var(--panel-2)}
+  .tl-row{display:flex; align-items:center; gap:8px; font-family:"JetBrains Mono"; font-size:.72rem;
+    color:var(--muted); margin-bottom:9px}
+  .tl-row:last-child{margin-bottom:0}
+  .tl-day{color:var(--faint); width:54px; flex:none}
+  .tl-track{flex:1; height:8px; border-radius:5px; background:#222a34; position:relative; overflow:hidden}
+  .tl-track i{position:absolute; inset:0; width:0; border-radius:5px}
+  .tl-in i{background:var(--recover)}
+  .tl-out i{background:var(--loss)}
+  .tl-gap{background:repeating-linear-gradient(45deg,rgba(255,90,44,.18) 0 6px,transparent 6px 12px);
+    border:1px dashed rgba(255,90,44,.5)}
+  .opts{display:grid; gap:10px; margin-top:6px}
+  .opt{all:unset; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
+    gap:12px; border:1px solid var(--line); background:var(--panel-2); border-radius:11px;
+    padding:15px 16px; font-size:1rem; font-weight:500; transition:border-color .15s, background .15s, transform .08s}
+  .opt:hover{border-color:#3c4654}
+  .opt:active{transform:scale(.99)}
+  .opt[aria-pressed="true"]{border-color:var(--loss); background:rgba(255,90,44,.08)}
+  .opt .tick{width:18px;height:18px;border-radius:50%;border:2px solid var(--faint);flex:none}
+  .opt[aria-pressed="true"] .tick{border-color:var(--loss); background:var(--loss);
+    box-shadow:inset 0 0 0 3px var(--panel-2)}
+  .opt:focus-visible{outline:2px solid var(--warn); outline-offset:2px}
+  .gauge{margin:6px auto 2px; width:100%; max-width:330px; display:block}
+  .readout{text-align:center; margin-top:-8px}
+  .readout .x{font-family:"JetBrains Mono"; font-weight:700; font-size:clamp(2rem,10vw,2.9rem);
+    color:var(--loss); letter-spacing:-.02em; line-height:1}
+  .readout .xlab{font-family:"Saira"; letter-spacing:.12em; text-transform:uppercase; font-size:.66rem;
+    color:var(--muted); margin-top:4px}
+  .readout .x.prod{color:var(--text)}
+  .lossline{text-align:center; margin-top:10px}
+  .lossline .lv{font-family:"JetBrains Mono"; font-weight:700; font-size:1.5rem; color:var(--loss); line-height:1}
+  .lossline .ll{font-family:"Saira"; text-transform:uppercase; letter-spacing:.1em; font-size:.6rem; color:var(--muted); display:block; margin-top:3px}
+  .rec{margin-top:14px; border:1px solid rgba(52,199,123,.35); background:rgba(52,199,123,.07);
+    border-radius:11px; padding:12px 15px; display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+  .rec .z{font-family:"JetBrains Mono"; font-weight:700; font-size:1.4rem; color:var(--recover)}
+  .rec .zl{font-size:.82rem; color:var(--muted)}
+  .rec-split{margin:8px 0 0; display:grid; gap:7px; padding:2px 4px 0}
+  .rec-line{display:flex; justify-content:space-between; align-items:baseline; font-size:.82rem; color:var(--muted)}
+  .rec-line i{font-style:normal; font-family:"JetBrains Mono"; font-size:.7rem; color:var(--recover); margin-left:5px}
+  .rec-line b{font-family:"JetBrains Mono"; color:var(--text); font-weight:600; font-size:.86rem}
+  .cta-recap{margin:20px 0 4px; padding-top:18px; border-top:1px solid var(--line)}
+  .cta-recap .cr-lab{font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:10px}
+  .cta-recap .readout{margin-top:0}
+  .bd{margin-top:14px; border:1px solid var(--line); border-radius:11px; padding:12px 14px;
+    background:var(--panel-2); font-family:"JetBrains Mono"; font-size:.78rem; color:var(--muted)}
+  .bd-row{display:flex; justify-content:space-between; gap:10px; padding:4px 0}
+  .bd-row b{color:var(--text); font-weight:700}
+  .bd-row.tot{border-top:1px solid var(--line); margin-top:4px; padding-top:8px; color:var(--text)}
+  .bd-row.tot b{color:var(--loss)}
+  .sliders{margin-top:16px; display:grid; gap:15px}
+  .sl{display:block}
+  .sl-top{display:flex; justify-content:space-between; align-items:baseline; font-size:.85rem;
+    color:var(--muted); margin-bottom:7px}
+  .sl-top b{color:var(--text); font-family:"JetBrains Mono"; font-weight:700}
+  input[type=range]{width:100%; accent-color:var(--loss); height:22px; cursor:pointer}
+  input.track-zone{-webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:5px;
+    cursor:pointer; outline:none; accent-color:auto;
+    background:linear-gradient(90deg,var(--loss) 0 12%,var(--warn) 12% 28%,var(--recover) 28% 100%)}
+  input.track-zone::-webkit-slider-thumb{-webkit-appearance:none; appearance:none; width:20px; height:20px;
+    border-radius:50%; background:#fff; border:3px solid var(--ink); box-shadow:0 1px 5px rgba(0,0,0,.55); cursor:pointer}
+  input.track-zone::-moz-range-track{height:8px; border-radius:5px;
+    background:linear-gradient(90deg,var(--loss) 0 12%,var(--warn) 12% 28%,var(--recover) 28% 100%)}
+  input.track-zone::-moz-range-thumb{width:18px; height:18px; border-radius:50%; background:#fff;
+    border:3px solid var(--ink); cursor:pointer}
+  .prodline{text-align:center; font-size:.82rem; color:var(--muted); margin-top:2px}
+  .prodline b{font-family:"JetBrains Mono"; font-weight:700}
+  .assume{font-size:.8rem; color:var(--muted); margin:14px 0 0; line-height:1.5}
+  .note{font-size:.78rem; color:var(--faint); text-align:center; margin-top:12px; font-style:italic}
+  .stdpanel{margin-top:14px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.02); padding:0 14px}
+  .stdpanel summary{cursor:pointer; padding:12px 0; font-weight:700; font-size:.92rem; list-style:none; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .stdpanel summary::-webkit-details-marker{display:none}
+  .stdpanel[open] summary{border-bottom:1px solid var(--line)}
+  .std-hint{font-weight:400; font-size:.76rem; color:var(--faint); font-style:italic}
+  .stdpanel .sliders{padding-bottom:8px}
+  .ca-extra{margin-top:10px}
+  .ca-extra input[type=number]{width:100%; background:var(--ink); border:1px solid var(--line);
+    border-radius:9px; color:var(--text); font-family:"JetBrains Mono"; font-weight:700;
+    font-size:1rem; padding:10px 12px; outline:none; -moz-appearance:textfield}
+  .ca-extra input[type=number]:focus{border-color:var(--loss)}
+  .ca-extra input::-webkit-outer-spin-button,.ca-extra input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .ca-hint{font-size:.74rem; color:var(--faint); margin-top:7px; line-height:1.55}
+  .ca-hint b{color:var(--muted); font-family:"JetBrains Mono"}
+  .ca-hint a{color:var(--recover); text-decoration:none; border-bottom:1px dotted var(--recover)}
+  .ca-hint a:hover{color:var(--text)}
+  .xsub{font-family:"JetBrains Mono"; font-size:.72rem; color:var(--faint); margin-top:4px; letter-spacing:.02em}
+  .prodref{font-family:"JetBrains Mono"; font-size:.74rem; color:var(--muted); margin-top:6px; letter-spacing:.02em}
+  .recsub{font-family:"JetBrains Mono"; font-size:.72rem; color:var(--loss); text-align:right; margin:3px 4px 0; letter-spacing:.02em}
+  .partsrow{font-family:"JetBrains Mono"; font-size:.68rem; color:var(--faint); text-align:right; margin:6px 4px 0; letter-spacing:.02em; line-height:1.5}
+  .partsrow .pl-tag{font-family:"Saira"; font-size:.56rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); border:1px solid var(--line); border-radius:4px; padding:1px 5px; margin-left:3px}
+  .meters-h{font-family:"Saira"; font-size:.64rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:18px 0 9px}
+  .meter{margin-top:11px}
+  .meter.prime{padding:11px 12px; border:1px solid var(--line); border-left:3px solid var(--info); border-radius:9px; background:rgba(79,145,232,.05)}
+  .drv{font-family:"JetBrains Mono"; font-size:.58rem; letter-spacing:.08em; text-transform:uppercase; color:var(--info); border:1px solid var(--info); border-radius:4px; padding:1px 5px; margin-left:6px; vertical-align:middle}
+  .meter-top{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:5px}
+  .meter-top .mn{font-family:"Saira"; font-size:.78rem; color:var(--text)}
+  .meter-top .mv{font-family:"JetBrains Mono"; font-size:.72rem; color:var(--faint)}
+  .meter-top .mv b{color:var(--text)}
+  .meter-track{height:11px; border-radius:5px; position:relative; overflow:hidden;
+    background:repeating-linear-gradient(45deg, rgba(52,199,123,.22) 0 6px, rgba(52,199,123,.07) 6px 12px);
+    border:1px solid rgba(52,199,123,.28)}
+  .meter-track i{position:absolute; left:0; top:0; bottom:0; border-radius:5px 0 0 5px; box-shadow:2px 0 0 rgba(232,236,242,.35)}
+  .meter-pct{font-family:"JetBrains Mono"; font-size:.66rem; color:var(--faint); text-align:right; margin-top:3px}
+  .s1close{margin-top:16px; font-family:"Saira"; font-size:1.05rem; font-weight:700; color:var(--text); line-height:1.4; border-left:3px solid var(--recover); padding-left:12px}
+  .s0hook{font-family:"Saira"; font-size:1.05rem; font-weight:400; color:var(--muted); line-height:1.5; margin-bottom:18px; font-style:italic}
+  .postinc{margin-top:13px; padding:10px 12px; border:1px solid var(--line); border-left:3px solid var(--recover); border-radius:9px; background:rgba(52,199,123,.05); display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:4px 8px}
+  .postinc .pi-lab{font-family:"Saira"; font-size:.78rem; color:var(--text)}
+  .postinc .pi-val{font-family:"Saira"; font-weight:800; font-size:1.02rem; color:var(--recover)}
+  .cta-close{margin-top:14px; padding:11px 14px; border-left:3px solid var(--info); border-radius:0 8px 8px 0; background:rgba(79,145,232,.07); font-family:"Saira"; font-size:.9rem; font-weight:600; color:var(--text); line-height:1.4}
+  .postinc .pi-sub{flex-basis:100%; font-family:"JetBrains Mono"; font-size:.66rem; color:var(--faint); margin-top:2px}
+  .who{display:flex; gap:13px; align-items:center; margin:10px 0 4px; padding:13px;
+    border:1px solid var(--line); border-radius:11px; background:var(--panel-2)}
+  .ava{width:46px;height:46px;border-radius:11px;flex:none;
+    background:linear-gradient(135deg,#2a323d,#1a212a); display:grid; place-items:center;
+    font-family:"Saira"; font-weight:700; color:var(--loss); font-size:1.2rem; border:1px solid var(--line)}
+  .who .n{font-family:"Saira"; font-weight:600; font-size:.95rem}
+  .who .r{font-size:.8rem; color:var(--muted)}
+  .nav{display:flex; gap:10px; margin-top:18px}
+  .btn{all:unset; cursor:pointer; text-align:center; font-family:"Saira"; font-weight:600;
+    letter-spacing:.03em; padding:15px 18px; border-radius:11px; font-size:1rem; transition:transform .08s, filter .15s}
+  .btn:active{transform:scale(.985)}
+  .btn:focus-visible{outline:2px solid var(--warn); outline-offset:2px}
+  .btn.primary{flex:1; background:linear-gradient(180deg,#FF6B40,var(--loss)); color:#fff}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn.primary:disabled{opacity:.35; cursor:not-allowed; filter:none}
+  .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--muted)}
+  .btn.ghost:hover{border-color:#3c4654; color:var(--text)}
+  .cta-sec{margin-top:10px; background:transparent; border:1px solid var(--line); color:var(--muted);
+    width:100%; box-sizing:border-box}
+  .toast{position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(20px);
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:13px 18px;
+    border-radius:11px; font-size:.9rem; box-shadow:var(--shadow); opacity:0; pointer-events:none;
+    transition:opacity .25s, transform .25s; max-width:90vw; text-align:center}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  details.admin{width:100%; max-width:560px; margin-top:4px; font-size:.82rem}
+  details.admin summary{cursor:pointer; color:var(--faint); font-family:"Saira"; letter-spacing:.05em;
+    text-transform:uppercase; font-size:.68rem; padding:8px 0; list-style:none}
+  details.admin summary::-webkit-details-marker{display:none}
+  details.admin summary::before{content:"▸ "; color:var(--loss)}
+  details.admin[open] summary::before{content:"▾ "}
+  .admin-box{background:#0a0d11; border:1px solid var(--line); border-radius:10px; padding:14px;
+    font-family:"JetBrains Mono"; font-size:.74rem; color:var(--muted); white-space:pre-wrap; line-height:1.6}
+  .admin-box b{color:var(--text)}
+  .tier{display:inline-block; padding:2px 9px; border-radius:999px; font-weight:700; font-size:.72rem}
+  .tier.A{background:rgba(255,90,44,.15); color:var(--loss)}
+  .tier.B{background:rgba(242,181,61,.15); color:var(--warn)}
+  .tier.C{background:rgba(138,149,165,.15); color:var(--muted)}
+  .mirror-split{display:block}
+  .mirror-left{} .mirror-right{}
+  @media (min-width:1200px){
+    .mirror-split{display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start}
+    .mirror-left .readout .x{font-size:clamp(2.4rem,3vw,3.2rem)}
+  }
+  .verify{border:1px solid rgba(242,181,61,.4); background:rgba(242,181,61,.08);
+    border-radius:11px; padding:16px 16px; margin:6px 0 4px}
+  .vh{font-family:"Saira"; font-weight:700; font-size:1.05rem; color:var(--warn); margin-bottom:6px}
+  .util-pill{font-family:"JetBrains Mono"; font-weight:700}
+  .tgt{font-size:.78rem; color:var(--muted)}
+  .exp-pill{display:inline-block; font-size:.62rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink); background:var(--recover); padding:2px 7px; border-radius:999px; vertical-align:middle; margin-left:4px}
+  .slogan{font-family:"Saira"; font-weight:700; font-size:clamp(1.45rem,5.6vw,2rem);
+    line-height:1.12; letter-spacing:-.01em; text-align:center; margin:22px 0 4px;
+    border-top:1px solid var(--line); padding-top:22px}
+  .slogan .g{color:var(--recover)}
+  .vs{display:flex; align-items:stretch; gap:10px; margin:16px 0 6px}
+  .vs-col{flex:1; border:1px solid var(--line); background:var(--panel-2); border-radius:11px; padding:13px 14px; min-width:0}
+  .vs-lab{font-family:"Saira"; font-weight:700; font-size:.95rem; color:var(--muted)}
+  .vs-desc{font-size:.8rem; color:var(--faint); margin-top:3px}
+  .vs-real{border-color:rgba(52,199,123,.42); background:rgba(52,199,123,.07)}
+  .vs-real .vs-lab{color:var(--recover)}
+  .vs-sign{display:grid; place-items:center; font-family:"Saira"; font-weight:700;
+    font-size:1.5rem; color:var(--loss); flex:none; width:22px}
+  .bottleneck{margin-top:14px; border:1px solid var(--line); background:var(--panel-2);
+    border-radius:10px; padding:11px 14px; font-size:.86rem; color:var(--muted); text-align:center}
+  .bottleneck b{font-family:"JetBrains Mono"; font-size:1rem}
+  .pot-row{margin-top:9px; padding-top:9px; border-top:1px solid var(--line); font-size:.84rem}
+  @media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
+
+  /* ===== MOBIL (≤600px) — érintőbarát, nagy gombok ===== */
+  @media (max-width:600px){
+    body{padding:12px 10px}
+    .card{padding:22px 18px; min-height:380px}
+    h1{font-size:clamp(1.35rem,6.5vw,1.75rem)}
+    .btn{padding:16px 14px; font-size:.97rem}
+    .opt{padding:14px 14px}
+    .readout .x{font-size:clamp(2.1rem,11vw,2.6rem)}
+    .meters-h{margin:14px 0 7px}
+    .rec{padding:10px 12px}
+    .rec .z{font-size:1.25rem}
+    .s0hook{font-size:.97rem}
+    .cta-close{font-size:.85rem; padding:10px 12px}
+    .timeline{padding:13px 11px}
+    .who{padding:11px}
+    .postinc{padding:9px 11px}
+    .sl-top{font-size:.82rem}
+    .meter-top .mn{font-size:.75rem}
+    .meter-top .mv{font-size:.68rem}
+  }
+
+  /* ===== TABLET (601–900px) ===== */
+  @media (min-width:601px) and (max-width:900px){
+    body{padding:20px 24px}
+    .wrap{max-width:600px}
+    .card{padding:30px 28px}
+  }
+
+  /* ===== PC (≥901px) — szélesebb kártya, kéthasábos lehetőség ===== */
+  @media (min-width:901px){
+    body{padding:32px 40px; align-items:center}
+    .wrap{max-width:720px; gap:16px}
+    .card{padding:38px 42px; min-height:460px; border-radius:18px}
+    h1{font-size:clamp(1.6rem,3vw,2.2rem)}
+    p.sub{font-size:1rem}
+    .btn{padding:17px 24px; font-size:1.05rem; border-radius:12px}
+    .opt{padding:16px 20px; font-size:1.02rem; border-radius:13px}
+    /* mirror: mérőórák + jövedelem kéthasábos */
+    .meters-2col{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+    /* vs blokk szélesebb */
+    .vs{gap:14px}
+    .vs-col{padding:16px 18px}
+    /* readout hero nagyobb */
+    .readout .x{font-size:clamp(2.6rem,4.5vw,3.4rem)}
+    /* timeline wider */
+    .timeline{padding:18px 20px}
+    /* who card */
+    .who{padding:16px 18px}
+    /* CTA email input */
+    #ctaEmailInp{font-size:1.05rem; padding:13px 16px}
+    /* s0hook */
+    .s0hook{font-size:1.12rem}
+    /* cta-close */
+    .cta-close{font-size:.95rem; padding:13px 16px}
+    /* admin panel szélesebb */
+    details.admin{max-width:720px}
+  }
+
+  /* ===== NAGY PC (≥1200px) — kéthasábos split layout ===== */
+  @media (min-width:1200px){
+    body{padding:40px 60px}
+    .wrap{max-width:860px}
+    .card{padding:44px 52px}
+    h1{font-size:clamp(1.8rem,2.5vw,2.4rem)}
+    /* Mirror lap: bal = hero + visszanyerés, jobb = mérők */
+    .mirror-split{display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start}
+    .readout .x{font-size:clamp(3rem,3.5vw,3.8rem)}
+    details.admin{max-width:860px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><span class="dot"></span><span class="brand-txt"><span class="brand-name"><span class="r">Red</span> Assistance</span><span class="brand-sub">Service Digital Ecosystem</span></span><span class="brand-mod">Reality Index</span></div>
+    <div class="lang" role="group" aria-label="Limbă">
+      <button data-lang="ro" aria-pressed="true">RO</button>
+      <button data-lang="hu" aria-pressed="false">HU</button>
+    </div>
+  </div>
+  <div class="bar"><i id="prog"></i></div>
+  <div class="card" id="card"></div>
+</div>
+
+<details class="admin">
+  <summary id="adminSummary">Pentru Ferenc / dezvoltator — ce se salvează</summary>
+  <div class="admin-box" id="adminBox">—</div>
+</details>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const T = {
+  ro:{
+    next:"Continuă", back:"Înapoi", start:"Începe — 5 minute",
+    s0_hook:"Între cât muncește service-ul tău și cât produce — e o diferență. Puțini proprietari o văd.",
+    s0_eye:"Indicatorul realității",
+    s0_h:'Vezi unde se blochează <span class="hl">producția reală</span> a service-ului tău',
+    s0_sub:"În 5 minute afli dacă problema vine din recepție, ofertare, recurență, organizarea lucrărilor sau lipsa unui raport de producție.",
+    s0_note:"Estimarea pornește din datele tale și se verifică prin audit.",
+    s0_btn:"Verifică realitatea service-ului",
+    s0_step:"Primul pas: Reality Index → raport automat → audit",
+    s1_eye:"De ce contează",
+    s1_h:'Cifrele din bilanț îți arată ce a rămas. <span class="hl">Nu îți arată ce s-a pierdut pe drum.</span>',
+    s1_p:"Recepție, ofertare, așteptări, piese, aprobări, organizarea lucrărilor — acolo se pierd orele facturabile.",
+    vs_paper_l:"Contabilitatea", vs_paper_d:"îți arată rezultatul",
+    vs_real_l:"Reality Index", vs_real_d:"unde se pierd orele facturabile",
+    s1_tl_title:"O zi pe un post de lucru",
+    tl_cap:"plafon fizic al zilei", tl_target:"țintă sănătoasă de producție", tl_block:"timp blocat în așteptări, piese, aprobări și haos",
+    who_n:"Ferenc Szkaliczki", who_r:"Proprietar BOSCH Car Service · Târgu Mureș",
+    s1_who:"„Am construit această logică întâi pentru propriul service. Nu ca teorie, ci ca să văd unde se pierd orele în fiecare zi.”",
+    s2_eye:"Unde se pierd orele",
+    s2_h:"Capacitatea pe care n-o vezi",
+    s2_a_t:"Ore neproductive", s2_a_d:"Aștepți piese, cauți scule, muți mașina — ore plătite, dar neproduse.",
+    s2_b_t:"Dezorganizare", s2_b_d:"Fără planificare, fiecare post pierde ~1,5 ore din 8 în fiecare zi.",
+    p1_t:'Timpul „invizibil”', p1_d:"Nu e doar timp nefacturat — e o scurgere constantă de cash. Când un mecanic caută o sculă sau așteaptă piese, tu îi plătești salariul și utilitățile, dar service-ul nu produce nimic.",
+    p2_t:"Dezorganizarea (efectul de domino)", p2_d:"Lipsa planificării duce la timpi morți în lanț. O mașină blocată pe elevator din cauza pieselor lipsă blochează alte 3 mașini care ar fi adus profit în acea zi.",
+    p3_t:"Costurile rămân. Profitul plătește diferența.", p3_d:"Costurile de producție rămân fixe. Dacă service-ul nu produce la potențial, diferența nu dispare — o plătești tu din profit.",
+    s2_p:"Plătești 8 ore. Facturezi 6,5. Diferența o plătești tu — 1,5 ore × fiecare post × 230 de zile lucrătoare pe an.",
+    slogan:'Transformă timpul mort în <span class="g">profit real</span>.',
+    q:"Întrebarea", of:"din",
+    q1:"Câte posturi și câți oameni productivi ai?",
+    q1_people:"Oameni productivi (mecanici)", q1_sal:"Salariu net mediu / mecanic (lună)", q1_cost:"Cost operațional firmă (% din venit post · recomandat)", q1_parts:"Venit piese (% din manoperă · recomandat)", parts_lab:"comerț piese", recoverable_short:"recuperabil", q1_sal_hint:"La acest salariu, tariful minim (doar salariul)", q1_bottle:"Capacitatea reală e dată de cel mai mic număr:", q1_unit:"unități productive", q1_pot:"Potențialul tău anual", pot_healthy:"bază sănătoasă", pot_turbo:"turbo (plafon 8h)", zile:"zile",
+    q2:"Cifra ta pe anul trecut și cât e manoperă?",
+    q2_lab:"Cifra de afaceri — anul trecut", q2_unknown:"Nu știu exact",
+    q2_perlu:"≈ pe lună", q2_verify:"verifică pe", cta_recover:"Prin audit gratuit, evidențiem scurgerile din firma ta",
+    q2_split:"Din cifră: piese vs manoperă", q2_split_unknown:"Nu știu (impl. 55% piese / 45% manoperă)",
+    piese:"Piese", mano_w:"Manoperă",
+    q2_alte:"Din cifră: alt venit (nu din service)", q2_alte_hint:"Rent-a-car, piese la ghișeu, A24, depozit anvelope etc. — se scade înainte de calcul. Service net:",
+    q3:"Cum urmărești acum producția?",
+    q4:"Care e cea mai mare problemă?",
+    q1o:["1–2","3–4","5–6","7+"],
+    q3o:["Din cap / deloc","Excel","Îmi spune contabilul","Am un software"],
+    q4o:["Ore pierdute / haos","Nu văd profitul real","Facturi de furnizori aglomerate","Nu știu pe ce se duc banii","Clienții dispar după reparație"],
+    mir_eye:"Oglinda ta",
+    mir_need:"Completează posturile și manopera ca să-ți arăt oglinda.",
+    unknown_h:"Lipsește un reper de conducere",
+    unknown_p:"Nu putem estima fără cifra de afaceri sau manopera lunară — și tocmai asta e primul semnal: dacă încasarea din manoperă nu e la îndemână, producția nu e măsurată. Pasul următor: adună cifra de afaceri, tariful mediu și numărul de oameni productivi. Întoarce-te și introdu cifra.",
+    s1_65note:"6,5 h nu este maximum teoretic. Este o țintă sănătoasă. Scopul nu este să forțezi oamenii, ci să reduci blocajele care opresc producția.",
+    s1_close:"Datele contabile îți arată realitatea. Auditul îți arată potențialul.",
+    mir_xlab:"Producție pierdută estimată / an (230 zile lucrătoare)",
+    mir_prod_ref:"din producția ta actuală de {p} RON/an",
+    meters_title:"Manopera aduce cifra · realizabil vs acum",
+    m_mano:"Manoperă / an", m_cifra:"Cifră de afaceri / an", m_driver:"motor", m_now2reach:"acum → realizabil", m_acum:"momentan", m_realiz:"realizabil",
+    std_t:"Standard / control", std_hint:"puncte de optimizare — valori recomandate, ajustabile", std_h:"ore", std_pp:"pp/oră",
+    std_target:"Producție țintă (oră/zi/post)", std_days:"Zile lucrătoare / an", std_opcbase:"Cost operațional la țintă (% manoperă)", std_opcslope:"Pantă cost operațional", std_partsbase:"Venit piese la țintă (% manoperă)", std_partsslope:"Pantă venit piese", std_law:"Sarcină salarială (lege RO 2026):",
+    pi_lab:"Valoare venit brut estimată / post de lucru", pi_sub:"utilizat {u}% · 230 zile × 8 h × tarif × 86% · profit brut 41,6%",
+    cap_compass:"A 2-a busolă · grad de utilizare posturi", cap_empty:"post gol",
+    mir_zl:"Recuperabil realist lunar cu organizare",
+    cap_h:"Post fără mecanic (capacitate deschidibilă)", cap_note:"Potențial complet / post gol: manoperă (6,5 h × 230 zile) + piese (~5.000/lună × 11). Capacitate deschidibilă — pentru a o activa e nevoie de cerere (recepție + recurență).",
+    rec_receptie:"Organizarea recepției",
+    rec_recurenta:"Recurența clienților",
+    rec_productie:"Organizarea producției",
+    mir_perday:"Producție reală / zi / post",
+    util:"Utilizare (din optimul de 6,5 h)",
+    tgt_green:"Verde: ≥ 7,2 h/zi",
+    expert:"Nivel expert",
+    bd_units:"Unități productive", h_unit:"= min(oameni, posturi)",
+    bd_actual:"Ore reale produse / lună",
+    bd_cap:"Producție lunară / post", bd_lost:"Ore pierdute × tarif", bd_real:"Producție pierdută / lună", bd_real_an:"Producție pierdută / an",
+    sl_prod:"Producție / zi / post", sl_tarif:"Tarif manoperă (RON/h)",
+    lv_people:"Oameni productivi", lv_posts:"Posturi de lucru", lv_turn:"Manopera ta lunară",
+    v_h:"Cifrele nu se potrivesc",
+    v_low_h:"Producția pare foarte mică",
+    v_low_p:"Din cifrele tale ar ieși sub 1,5 ore/zi/post — poate fi real, dar poate fi și un dat greșit, un post inactiv sau o manoperă subdeclarată. Asta o verificăm live, pe service-ul tău.",
+    v_incoh_h:"Cifrele nu se susțin reciproc",
+    v_incoh_p:"Pierderea estimată ar depăși toată cifra ta din service — ceea ce nu e posibil. Înseamnă date aproximative undeva. Le punem la punct live, exact pe service-ul tău.",
+    prov_h:"Valori de pornire — pune-le pe ale tale",
+    prov_p:"Acum oglinda lucrează cu valori implicite. Mișcă cifra de afaceri sau manopera ca să-ți arate service-ul TĂU, nu un exemplu.",
+    v_p1:"Din cifrele tale ar rezulta", v_p2:"ore/zi/post — peste maximul fizic de 8 ore. Înseamnă piese mari în cifră, venituri externe sau date aproximative. Verificăm împreună, live — și exact asta merită un apel.",
+    post:"post", luna:"lună", an:"an",
+    assume:"Capacitate: min(oameni, posturi) × 230 zile/an × 8 ore. Orele reale = manopera ÷ tarif. Subproducția = diferența până la 6,5 ore/zi; recuperabil realist = 49% din ea (organizare + ofertare/recepție + producție). Posturile fără mecanic se calculează separat, ca rezervă de capacitate deschidibilă.",
+    mir_note:"Estimare prudentă, din propriile tale cifre. Numărul exact îl dă sistemul tău în prima săptămână — eficiența reală pe fiecare post.",
+    cta_eye:"Următorul pas",
+    cta_h:"Vezi cifra reală — live, pe propriul meu service.",
+    cta_p:"Un proprietar altuia. 20 de minute și vei ști dacă merită pentru tine.",
+    cta_rec:"Pe baza datelor tale:",
+    cta_rec_incon:"Cifrele tale ies din tipar — exact de aceea merită o verificare live, pe service-ul tău.",
+    cta1:"Prin audit gratuit, evidențiem scurgerile din firma ta", cta2:"Vreau cifra detaliată pe e-mail",
+    cta_email_p:"Lasă adresa ta — auditul are nevoie de un proprietar.", cta_email_ph:"adresa ta de e-mail", cta_email_btn:"Vreau auditul", cta_email_ok:"Te contactăm în 24 de ore.",
+    toast:"Într-o implementare reală, aici se deschide programarea (POARTA 4).",
+    lei:"lei", h_ora:"ore", adm_open:"Pentru Ferenc / dezvoltator — ce se salvează"
+  },
+  hu:{
+    next:"Tovább", back:"Vissza", start:"Kezdés — 5 perc",
+    s0_hook:"A között, amennyit dolgozik a szervized, és amennyit termel — van egy különbség. Kevés tulajdonos látja.",
+    s0_eye:"Valóság-index",
+    s0_h:'Nézd meg, hol akad el a szerviződ <span class="hl">valós termelése</span>',
+    s0_sub:"5 perc alatt kiderül, hogy a probléma a recepcióból, az ajánlatadásból, a rekurenciából, a munkaszervezésből vagy a termelési riport hiányából jön.",
+    s0_note:"A becslés a saját adataidból indul, és audittal igazoljuk.",
+    s0_btn:"Megnézem a szerviz valóságát",
+    s0_step:"Első lépés: Reality Index → automatikus riport → audit",
+    s1_eye:"Miért számít",
+    s1_h:'A mérleg számai megmutatják mi maradt. <span class="hl">Azt nem mutatják, mi veszett el közben.</span>',
+    s1_p:"Recepció, ajánlatadás, várakozás, alkatrész, jóváhagyás, munkaszervezés — itt vesznek el a számlázható órák.",
+    vs_paper_l:"A könyvelés", vs_paper_d:"az eredményt mutatja",
+    vs_real_l:"Reality Index", vs_real_d:"hol vesznek el a számlázható órák",
+    s1_tl_title:"Egy nap egy munkaposzton",
+    tl_cap:"a nap fizikai plafonja", tl_target:"egészséges termelési cél", tl_block:"várakozásban, alkatrészben, jóváhagyásban és káoszban blokkolt idő",
+    who_n:"Szkaliczki Ferenc", who_r:"BOSCH Car Service tulajdonos · Marosvásárhely",
+    s1_who:"„Ezt a logikát először a saját szervizemre építettem. Nem elméletként, hanem hogy lássam, hol vesznek el az órák minden nap.”",
+    s2_eye:"Hol vész el az óra",
+    s2_h:"A kapacitás, amit nem látsz",
+    s2_a_t:"Nem termelő órák", s2_a_d:"Alkatrészre vársz, szerszámot keresel, autót mozgatsz — fizetett, de nem termelő órák.",
+    s2_b_t:"Szervezetlenség", s2_b_d:"Tervezés nélkül minden poszt ~1,5 órát veszít a 8-ból minden nap.",
+    p1_t:'A „láthatatlan” idő', p1_d:"Ez nem csak nem számlázott idő — folyamatos cash-szivárgás. Amikor a szerelő szerszámot keres vagy alkatrészre vár, te fizeted a bérét és a rezsit, de a szerviz semmit nem termel.",
+    p2_t:"Szervezetlenség (dominóhatás)", p2_d:"A tervezés hiánya láncolt holtidőt szül. Egy emelőn alkatrészhiány miatt rekedt autó még 3 másik autót blokkol, amik aznap profitot hozhattak volna.",
+    p3_t:"A költségek maradnak. A különbséget a nyereséged fizeti.", p3_d:"A termelési költségek fixek maradnak. Ha a szerviz nem termel a potenciálján, a különbség nem tűnik el — te fizeted ki a nyereségedből.",
+    s2_p:"8 órát kifizetsz. 6,5-öt számlázol. A különbséget te állod — 1,5 óra × minden poszt × 230 munkanap évente.",
+    slogan:'Alakítsd a holtidőt <span class="g">valódi profittá</span>.',
+    q:"Kérdés", of:"/",
+    q1:"Hány poszt és hány termelő ember van nálad?",
+    q1_people:"Termelő ember (szerelő)", q1_sal:"Átlag nettó fizetés / szerelő (hó)", q1_cost:"Cég működési költsége (munkaposzt-jövedelem %-a · ajánlott)", q1_parts:"Alkatrész-jövedelem (manoperă %-a · ajánlott)", parts_lab:"alkatrész", recoverable_short:"visszanyerhető", q1_sal_hint:"Ennél a fizetésnél a minimum óradíj (csak a bér)", q1_bottle:"A valós kapacitást a kisebbik szám adja:", q1_unit:"termelő egység", q1_pot:"Éves potenciálod", pot_healthy:"egészséges bázis", pot_turbo:"turbo (8 ó plafon)", zile:"nap",
+    q2:"Tavalyi éves forgalmad és mennyi belőle a manoperă?",
+    q2_lab:"Tavalyi éves forgalom", q2_unknown:"Nem tudom pontosan",
+    q2_perlu:"≈ havi", q2_verify:"ellenőrizd:", cta_recover:"Ingyenes audittal feltárjuk a szervized veszteségpontjait",
+    q2_split:"A forgalomból: alkatrész vs manoperă", q2_split_unknown:"Nem tudom (alapért. 55% alkatrész / 45% manoperă)",
+    piese:"Alkatrész", mano_w:"Manoperă",
+    q2_alte:"A forgalomból: egyéb bevétel (nem service)", q2_alte_hint:"Rent-a-car, ghișeu alkatrész, A24, gumitárolás stb. — kivonódik a számítás előtt. Nettó service:",
+    q3:"Most hogyan követed a termelést?",
+    q4:"Mi a legnagyobb gondod?",
+    q1o:["1–2","3–4","5–6","7+"],
+    q3o:["Fejből / sehogy","Excel","Könyvelő mondja meg","Van szoftverem"],
+    q4o:["Elvesztett órák / káosz","Nem látom a valós profitot","Torlódó beszállítói számlák","Nem tudom, mire megy el","Az ügyfél eltűnik a javítás után"],
+    mir_eye:"A te tükröd",
+    mir_need:"Töltsd ki a posztokat és a manoperát, hogy megmutassam a tükröt.",
+    unknown_h:"Hiányzik egy vezetői alapadat",
+    unknown_p:"A forgalom vagy a havi manoperă nélkül nem becsülünk — és pont ez az első jelzés: ha a munkadíjbevétel nincs kéznél, a termelés nincs mérve. A következő lépés: gyűjtsd össze a havi forgalmat, az átlagos óradíjat és a termelő emberek számát. Lépj vissza, és add meg a forgalmat.",
+    s1_65note:"A 6,5 óra nem elméleti maximum. Egészséges cél. A lényeg nem az emberek túlhajtása, hanem a termelést megállító blokkok csökkentése.",
+    s1_close:"A könyvelési adatok a valóságot mutatják. Az audit a potenciált mutatja.",
+    mir_xlab:"Becsült elvesztett termelés / év (230 munkanap)",
+    mir_prod_ref:"a jelenlegi {p} RON/évi termelésedből",
+    meters_title:"A manoperă hozza a forgalmat · elérhető vs pillanatnyi",
+    m_mano:"Munkadíj / év", m_cifra:"Forgalom / év", m_driver:"motor", m_now2reach:"pillanatnyi → elérhető", m_acum:"most", m_realiz:"elérhető",
+    std_t:"Standard / kontroll", std_hint:"optimalizáló pontok — ajánlott értékek, állíthatók", std_h:"óra", std_pp:"pp/óra",
+    std_target:"Cél termelés (óra/nap/poszt)", std_days:"Munkanap / év", std_opcbase:"Működési ktg a célnál (manoperă %-a)", std_opcslope:"Működési ktg meredekség", std_partsbase:"Alkatrész-jövedelem a célnál (manoperă %-a)", std_partsslope:"Alkatrész meredekség", std_law:"Bérteher (RO törvény 2026):",
+    pi_lab:"Becsült bruttó venit / munkaposzt", pi_sub:"kihasználtság {u}% · 230 nap × 8 ó × óradíj × 86% · bruttó profit 41,6%",
+    cap_compass:"2. iránytű · munkaposzt-kihasználtság", cap_empty:"üres poszt",
+    mir_zl:"Reálisan visszahozható havonta, szervezéssel",
+    cap_h:"Szerelő nélküli emelő (kinyitható kapacitás)", cap_note:"Üres poszt teljes potenciálja: manoperă (6,5 ó × 230 nap) + alkatrész (~5.000/hó × 11). Kinyitható kapacitás — aktiválásához kereslet kell (recepció + rekurencia).",
+    rec_receptie:"Recepció megszervezése",
+    rec_recurenta:"Visszatérő ügyfelek",
+    rec_productie:"Termelés megszervezése",
+    mir_perday:"Valós termelés / nap / poszt",
+    util:"Kihasználtság (a 6,5 ó optimumból)",
+    tgt_green:"Zöld: ≥ 7,2 ó/nap",
+    expert:"Expert szint",
+    bd_units:"Termelő egység", h_unit:"= min(ember, poszt)",
+    bd_actual:"Valós termelt óra / hó",
+    bd_cap:"Havi termelés / poszt", bd_lost:"Elvesztett óra × díj", bd_real:"Elvesztett termelés / hó", bd_real_an:"Elvesztett termelés / év",
+    sl_prod:"Termelés / nap / munkaposzt", sl_tarif:"Óradíj (RON/h)",
+    lv_people:"Termelő ember", lv_posts:"Munkaposzt", lv_turn:"Havi manoperád",
+    v_h:"A számok nem stimmelnek",
+    v_low_h:"Nagyon alacsonynak tűnik a termelés",
+    v_low_p:"A számaidból 1,5 óra/nap/poszt alatt jönne ki — lehet valós, de lehet hibás adat, inaktív poszt vagy alulbecsült manoperă is. Ezt élesben, a szervizeden nézzük meg.",
+    v_incoh_h:"A számok nem támasztják alá egymást",
+    v_incoh_p:"A becsült veszteség meghaladná a teljes service-forgalmadat — ami nem lehetséges. Valahol becsült az adat. Élesben, a szervizeden tesszük helyre.",
+    prov_h:"Indulóértékek — állítsd a sajátodra",
+    prov_p:"A tükör most alapértékekkel dolgozik. Mozgasd a forgalmat vagy a manoperát, hogy a TE szervizedet mutassa, ne egy példát.",
+    v_p1:"A számaidból", v_p2:"óra/nap/poszt jönne ki — a fizikai 8 óra fölött. Ez nagy alkatrész-arányt, külső bevételt vagy becsült adatot jelez. Élesben tisztázzuk együtt — és pont ez az, ami megér egy hívást.",
+    post:"poszt", luna:"hó", an:"év",
+    assume:"Kapacitás: min(ember, poszt) × 230 nap/év × 8 óra. A valós óra = a manoperă ÷ óradíj. Az alultermelés = a 6,5 óra/napig hiányzó rész; reálisan visszanyerhető ennek 49%-a (szervezés + ajánlat/recepció + termelés). A szerelő nélküli posztokat külön számoljuk, kinyitható kapacitás-rezervaként.",
+    mir_note:"Óvatos becslés a saját számaidból. A pontos számot a rendszered adja az első héten — a valós hatékonyság posztonként.",
+    cta_eye:"A következő lépés",
+    cta_h:"Lásd az igazi számot — élesben, a saját szervizemen.",
+    cta_p:"Egy tulajdonos a másiknak. 20 perc, és tudni fogod, megéri-e neked.",
+    cta_rec:"A megadott adataid alapján:",
+    cta_rec_incon:"A számaid kilógnak a megszokottból — pont ezért érdemes élőben, a szervizeden ellenőrizni.",
+    cta1:"Ingyenes audittal feltárjuk a szervized veszteségpontjait", cta2:"Kérem a részletes számom e-mailben",
+    cta_email_p:"Add meg az e-mail címed — az auditnak tulajdonosa kell legyen.", cta_email_ph:"e-mail címed", cta_email_btn:"Kérem az auditot", cta_email_ok:"24 órán belül felvesszük veled a kapcsolatot.",
+    toast:"Éles megvalósításban itt nyílik meg az időpontfoglaló (KAPU 4).",
+    lei:"lej", h_ora:"óra", adm_open:"Ferencnek / fejlesztőnek — mi mentődik"
+  }
+};
+
+const STEPS = ["s0","s1","s2","q1","q2","q3","q4","mirror","cta"];
+let lang = "ro";
+let step = 0;
+const answers = { q1:1, q2:1, q3:null, q4:null };
+let leadEmail = "";
+
+const Q2 = ["< 50.000","50–150.000","150–300.000","300.000+"];
+const Q2_MID = [35000,100000,225000,400000];
+
+/* ============================================================
+   Ferenc-modell v2 — 4 VALÓS bemenet: EMBER · POSZT · ÉRTÉK · MANOPERĂ
+   A termelés/nap NEM csúszka, hanem a SAJÁT cifrából SZÁMÍTOTT érték.
+   ============================================================ */
+const POSTS_MAP = [1,3,5,8];   // q1 sáv → poszt seed
+let  POTENTIAL = 8;            // fizikai plafon: óra/nap/poszt — STANDARD panel
+let  TARGET    = 6.5;          // jól szervezett, reálisan elérhető óra/nap/poszt — STANDARD panel
+let  ZILE_AN   = 230;          // valós ÉVI munkanap — STANDARD panel
+let  ZILE      = ZILE_AN/12;   // havi munkanap-egyenérték (≈19,2) — recalcStd() frissíti
+/* ===== KONTROLL-STANDARD — a 6,5-ös célállapot arányszámai, variábilis görbék (STANDARD panel, cégenként ±) =====
+   működési%(perDay) = OPC_BASE + max(0, TARGET−perDay) × OPC_SLOPE   [6,5→32% · 4,5→38%]
+   alkatrész%(perDay)= PARTS_BASE + max(0, TARGET−perDay) × PARTS_SLOPE [6,5→20% · 4,5→25%] */
+let  OPC_BASE   = 0.32;        // működési költség a manoperă %-a a 6,5-ös célnál (vállalati standard)
+let  OPC_SLOPE  = 0.03;        // működési % emelkedés / hiányzó óra (3,0 pp/óra)
+let  PARTS_BASE = 0.20;        // alkatrész-jövedelem a manoperă %-a a 6,5-ös célnál
+let  PARTS_SLOPE= 0.025;       // alkatrész % emelkedés / hiányzó óra (2,5 pp/óra)
+function recalcStd(){ ZILE = ZILE_AN/12; BILLABLE_AN = TARGET*ZILE_AN; }
+/* variábilis görbék — minden a 6,5-ös célhoz mért tényleges termeléshez (perDay) kötve */
+function opcPctV(pd){   return OPC_BASE   + Math.max(0, TARGET - pd) * OPC_SLOPE; }
+function partsPctVar(pd){ return PARTS_BASE + Math.max(0, TARGET - pd) * PARTS_SLOPE; }
+function wageHourV(pd){ return (salNet * EMPLOYER_MULT * 12) / (Math.max(0.1, pd) * ZILE_AN); }
+let  laborPct   = 0.45;        // manoperă a forgalom %-ában (q2 split; piese = 1-laborPct)
+let  altePct    = 0;           // ALTE VENITURI: nem termelésből (rent-a-car, ghișeu, A24…) — kivonódik a cifra-ból
+let  splitUnknown = false;     // „nu știu” a piese/manoperă bontásra → 55/45
+const RECOVER   = 0.49;        // a 3 intenzív kar (szervezés + recepció + termelés) reálisan a RÉS 49%-át hozza vissza — megméretett, NEM 65%, nincs kemény plafon
+const LOW_FLOOR  = 1.5;        // P2: alsó plauzibilitás-kapu — perDay < 1,5 ó/nap → verificare live (szimmetria a >8-hoz)
+const TARIF_MIN     = 100;     // óradíj csúszka MIN (RON/h)
+const TARIF_MAX     = 600;     // óradíj csúszka MAX (RON/h)
+const PRICE_FLOOR   = 160;     // egészséges piaci sáv ALJA — alulárazás-küszöb (RON/h)
+const PRICE_BAND_HI = 240;     // egészséges piaci sáv TETEJE (e fölött prémium)
+/* ===== benchmark — Real Control / üres emelő (4. kar: kapacitás) ===== */
+const RESULT_RATIO    = 0.225; // munkadíjból maradó eredmény (100% − 42,5% bér − 35% költség)
+const PARTS_RES_MONTH = 4500;  // alkatrész-kereskedelmi eredmény / emelő / termelő hónap (állítható)
+const WAGE_PCT        = 0.425; // bérköltség a teljes bevétel %-ában
+const OPCOST_PCT      = 0.36;  // működési költség a teljes bevétel %-ában
+const UTIL_POST       = 0.86;  // reális termelési kihasználtság / poszt (86% a 8 órás plafonból)
+const PARTS_ADD       = 0.20;  // alkatrész-jövedelem a manoperă %-ában (+20%)
+const PROFIT_RATIO    = (1 + PARTS_ADD) - WAGE_PCT - OPCOST_PCT; // = 0,415 → bruttó profit / poszt
+const INCOME_RATIO    = PROFIT_RATIO; // alias (backward compat)
+const PROD_MONTHS     = 11;    // termelő hónap / év (alkatrész-eredményhez)
+const DEMAND_FACTOR   = 0.6;   // üres emelő = KINYITHATÓ kapacitás, nem azonnali pénz — betölteni kereslet kell (állítható)
+
+/* 4 valós lever — a tükrön állítható, a tölcsér válaszaiból seedelve */
+let people   = 3;              // termelő ember
+let posts    = 4;              // munkaposzt
+let manopera = null;           // havi manoperă (munkadíj-bevétel) lei
+let cifra    = 150000;         // havi forgalom (cifra de afaceri) lei — q2 csúszka
+let cifraUnknown = false;      // „nu știu” — nem tudja a forgalmat
+let tarif    = 180;            // óradíj / manoperă lei/óra
+let finTouched = false;        // P1: a user ténylegesen hozzányúlt-e a bevételi alapadathoz (cifra/manoperă)? amíg nem → provizórikus tükör
+/* ===== manoperă óradíj KALIBRÁLÁS — éves költségalapú padló (Ferenc bázisai) =====
+   ASZIMMETRIA: a KÖLTSÉG 12 hónapos (fizetés + adó + működés egész évben), a TERMELÉS csak 230 nap × 6,5 óra.
+   A teljes ÉVES bérköltséget a 230 nap × 6,5 óra számlázható órán kell visszahozni.
+   nullszaldó = éves bérkölts ÷ ((1−költség%) × éves számlázható óra)  → ez alatt RÁFIZETSZ
+   egészséges = éves bérkölts ÷ (bér% × éves számlázható óra)          → ez alatt az eredmény elfogy */
+let   salNet       = 6000;     // átlag NETTÓ fizetés / termelő ember / hó (RON) — q1 INPUT, cégenként eltér
+/* ROMÁN BÉRTEHER 2026 (Cod Fiscal) — nettóból a TELJES céges költségig:
+   nettó = bruttó × (1 − CAS 25% − CASS 10% − impozit 10%×(1−CAS−CASS)) = bruttó × 0,585  (deducere nélkül, tipikus szerelőbérnél)
+   céges teljes = bruttó × (1 + CAM 2,25%)  →  a CAM a CÉG (angajator) hozzájárulása */
+const TAX_CAS=0.25, TAX_CASS=0.10, TAX_IMPOZIT=0.10, TAX_CAM=0.0225;
+const NET_RATIO     = 1 - TAX_CAS - TAX_CASS - TAX_IMPOZIT*(1 - TAX_CAS - TAX_CASS); // 0,585 nettó/bruttó
+const EMPLOYER_MULT = (1/NET_RATIO) * (1 + TAX_CAM);                                // nettó → teljes céges költség ≈ 1,748
+const SAL_TAX      = EMPLOYER_MULT; // a TÉNYLEGES román teljes bérteher (bruttó + CAM), nem a régi 1,6 közelítés
+const BILLABLE_AN_0 = 6.5 * 230;  // referencia 1.495 (csak doksi)
+const TARGET_PROFIT= 0.195;    // cél bruttó eredmény-margó (egészséges) — alap 19,5% (38% költségnél a bér 42,5%-ra jön ki)
+let   BILLABLE_AN  = TARGET * ZILE_AN;                                    // termelés csak 230 nap × 6,5 ó = 1.495 számlázható óra/ÉV — recalcStd() frissíti
+/* a két óradíj-küszöb a FIZETÉSBŐL és a CÉG KÖLTSÉGÉBŐL számol — bármelyik változására ÚJRASZÁMOL */
+function salFloor(){
+  const loadedAn = salNet * SAL_TAX * 12;                                 // teljes bérköltség / ÉV (12 hó) / termelő ember
+  const wagePerHour = loadedAn / BILLABLE_AN;                             // bérköltség / számlázható óra
+  return { loadedAn, wagePerHour, breakeven: Math.round(wagePerHour) };  // TISZTA bér-padló — a 38% NEM itt él többé, hanem a hatékonyság-faktorban
+}
+let cifraAnuala = cifra*12;    // cifra de afaceri ANUALĂ (anul trecut) — verificabilă pe listafirme; havi = ÷12
+
+/* ===== finomítás: nemlineáris csúszka-leképezések ===== */
+// Oameni / Posturi: 1–10 az első 50%-on, 10–100 a második 50%-on (poz: 0..1000)
+function nlVal(pos){ const x=(+pos)/1000; return Math.round(x<=.5 ? 1+(x/.5)*9 : 10+((x-.5)/.5)*90); }
+function nlPos(v){ v=Math.max(1,Math.min(100,+v||1)); return Math.round(v<=10 ? (v-1)/9*500 : 500+(v-10)/90*500); }
+// Cifra de afaceri ANUALĂ: logaritmikus skála 1 … 25.000.000 (poz: 0..1000)
+const CA_MAX=25000000, CA_LN=Math.log(CA_MAX);
+function caVal(pos){ return Math.round(Math.exp(((+pos)/1000)*CA_LN)); }
+function caPos(ca){ ca=Math.max(1,Math.min(CA_MAX,+ca||1)); return Math.round(Math.log(ca)/CA_LN*1000); }
+
+/* színküszöb (a gauge havi termelt órája alapján: 125≈5,7ó · 140≈6,4ó) */
+function utilCol(pd){ return pd<6.5?'var(--loss)':pd<7.2?'var(--warn)':'var(--recover)'; } // óra/nap/poszt alapján
+function benchEff(){ return {floor:PRICE_FLOOR, hi:PRICE_BAND_HI}; }       // fix piaci sáv (NEM költségből számolt)
+function tarifCol(t){ return t<PRICE_FLOOR?'var(--loss)':t<=PRICE_BAND_HI?'var(--warn)':'var(--recover)'; } // <160 alulárazott piros · 160–240 egészséges sáv sárga · >240 prémium zöld
+function fillCol(p){ return p<80?'var(--loss)':p<100?'var(--warn)':'var(--recover)'; } // realizabil=6,5 ó kényelmi zóna: <80 piros · 80-100 sárga · ≥100 zöld (8 ó = bónusz)
+
+function compute(){
+  if(answers.q1===null) return null;
+  const P  = posts    ?? POSTS_MAP[answers.q1];
+  const PE = people   ?? P;                                  // ember default = poszt
+  if(cifraUnknown && manopera==null) return {dataUnknown:true, P, PE, inconsistent:false}; // §7: NINCS rejtett default — a hiányzó adat maga a jelzés
+  const seedCifra = cifra || 0;                              // nincs hamis 150k; valós cifra-ból számolunk
+  const cifraNet  = Math.round(seedCifra * (1 - altePct));   // alte venituri kivonva → csak a service-forgalom
+  const F  = manopera ?? Math.round(cifraNet * laborPct);
+  if(!F || F<=0 || PE<=0 || P<=0 || tarif<=0) return null;
+  const units        = Math.min(PE, P);                      // valós termelő egység = min(ember, poszt)
+  const actualTotalH = F / tarif;                            // valós számlázott óra = manoperă ÷ óradíj
+  const perDay       = actualTotalH / (units * ZILE);        // valós termelt óra/nap/poszt
+  const inconsistent = perDay > POTENTIAL;                   // SZŰRŐ: fizikailag lehetetlen → verificare live
+  const tooLow       = !inconsistent && perDay > 0 && perDay < LOW_FLOOR; // P2: gyanúsan alacsony → verificare live (szimmetria)
+  const gapPerDay    = Math.max(0, TARGET - perDay);             // rés a 6,5 célig — NINCS kemény plafon (a 0,49 korlátoz)
+  const orePierdute  = Math.round(gapPerDay * units * ZILE);     // havi elveszett óra (teljes rés)
+  const orePierduteAn= Math.round(gapPerDay * units * ZILE_AN);  // ÉVES elveszett óra (230 munkanap)
+  const X            = Math.round(orePierdute * tarif);          // havi ALULTERMELÉSI veszteség (teljes rés, dolgozó emelők)
+  const Z            = Math.round(X * RECOVER);                  // havi visszanyerhető = rés × 0,49 (3 intenzív kar)
+  /* ===== 4. kar: ÜRES EMELŐ (kapacitás) — KÜLÖN veszteségtípus, NEM adódik a fentihez ===== */
+  const emptyLifts   = Math.max(0, P - PE);                      // álló emelő = poszt − ember
+  const realCtrlLift = Math.round((ZILE_AN*TARGET*tarif*RESULT_RATIO) + (PARTS_RES_MONTH*PROD_MONTHS)); // Real Control eredmény / emelő / év
+  const capLossAn    = Math.round(emptyLifts * realCtrlLift * DEMAND_FACTOR); // éves kinyitható kapacitás (demand-faktorral)
+  const capLoss      = Math.round(capLossAn / 12);              // havi
+  const monthlyProd  = Math.round(perDay * ZILE);               // termelt óra/hó/poszt
+  const oreBazaLuna  = Math.round(actualTotalH);                // össz termelt óra/hó
+  const util         = Math.round(perDay / POTENTIAL * 100);    // % a 8 ó fizikai plafonhoz (payload)
+  const expert       = perDay >= 7.2 && perDay <= POTENTIAL;    // 7,2–8 ó = zöld / expert szint
+  const Xan=X*12, Zan=Z*12;                                     // éves nézet (látvány = sokk)
+  const svcTurnAn    = cifraUnknown ? null : Math.round(cifraAnuala*(1-altePct)); // éves nettó service-forgalom
+  const incoherent   = !inconsistent && svcTurnAn!=null && svcTurnAn>0 && Xan > svcTurnAn; // P3: veszteség > forgalom = lehetetlen
+  const verifyReason = inconsistent ? "high" : (incoherent ? "incoh" : (tooLow ? "low" : null)); // egységes verify-ok
+  /* ===== 3 mérőóra: KELLENE vs VAN ===== */
+  const benchHoursPost = ZILE_AN * TARGET;                     // 1495 ó/poszt/év (230 × 6,5)
+  const benchManopera  = Math.round(units * benchHoursPost * tarif);          // [1] kellene manoperă/év (aktív posztok 6,5 ó-n)
+  const actualManopera = Math.round(F * 12);                                  // [1] van manoperă/év
+  const fillMano       = benchManopera>0 ? Math.min(100, Math.round(actualManopera/benchManopera*100)) : 0;
+  const achievCifra    = laborPct>0 ? Math.round(benchManopera / laborPct) : 0;   // [2] ELÉRHETŐ forgalom = a benchmark-manoperához tartozó forgalom (manoperă vezeti)
+  const actualCifraSvc = Math.round((cifra*12) * (1 - altePct));                   // [2] PILLANATNYI forgalom (service net, alte nélkül)
+  const fillCifra      = achievCifra>0 ? Math.min(100, Math.round(actualCifraSvc/achievCifra*100)) : 0;
+  const venitPerPost  = Math.round(ZILE_AN * POTENTIAL * tarif * UTIL_POST * PROFIT_RATIO); // venit brut / post = 230×8×tarif×86%×41,5%
+  const utilPost      = P>0 ? Math.round(units / P * 100) : 0;                 // poszt-kihasználtság %
+  /* ===== ALULÁRAZÁS — tarif < 160 RON piaci sáv alja — KÜLÖN, NEM adódik az óraréshez ===== */
+  const _sf          = salFloor();
+  const tarifGap     = Math.max(0, PRICE_FLOOR - tarif);          // alulárazás a piaci sáv aljától (160)
+  const priceLoss    = Math.round(tarifGap * actualTotalH);        // havi alulárazási veszteség a TÉNYLEG számlázott órákon
+  const priceLossAn  = Math.round(priceLoss * 12);                 // éves
+  const wageCostPerHour = _sf.wagePerHour;                         // bérköltség / számlázható óra (6,5-ös bér-padló referencia)
+  /* ===== 2. PONT: ALKATRÉSZ-kereskedelem — variábilis %, KÜLÖN ág (loss a 6,5-ös 20%-on, kijelzett % a perDay-nél) ===== */
+  const partsPctNow  = partsPctVar(perDay);                       // alkatrész % a TÉNYLEGES termelésnél (6,5→20% · 4,5→25%)
+  const partsRonHour = Math.round(tarif * partsPctNow);           // alkatrész RON / óra (külön ág)
+  const partsIncomeMo= Math.round(partsRonHour * actualTotalH);   // havi alkatrész-jövedelem most
+  const partsLoss    = Math.round(X * PARTS_BASE);                // havi elveszett alkatrész-profit = kiesett manoperă × 20% (cél-ráta)
+  const partsLossAn  = Math.round(Xan * PARTS_BASE);              // éves
+  const partsRecov   = Math.round(Z * PARTS_BASE);               // havi visszanyerhető
+  const partsRecovAn = Math.round(Zan * PARTS_BASE);             // éves
+  /* ===== 3. PONT: VARIÁBILIS ÓRA-GAZDASÁGTAN — a termelés-veszteség valós hatása (bér/óra ÉS működési% is romlik) ===== */
+  const wageHourNow  = wageHourV(perDay);                         // variábilis bér/óra: fix éves bér ÷ tényleg termelt óra
+  const wageHourOpt  = wageHourV(TARGET);                         // bér/óra a 6,5-ös célnál
+  const opcPctNow    = opcPctV(perDay);                           // működési % most (6,5→32% · 4,5→38%)
+  const opcRonHour   = Math.round(tarif * opcPctNow);             // működési költség RON/óra (a manoperă %-a)
+  const hourResult   = Math.round(tarif - wageHourNow - tarif*opcPctNow); // óra-eredmény (manoperából, alkatrész KÜLÖN) — lehet negatív
+  const hourResultOpt= Math.round(tarif - wageHourOpt - tarif*OPC_BASE);  // óra-eredmény a 6,5-ös célnál (referencia)
+  const workResultMo = Math.round(hourResult * actualTotalH);     // havi munka-eredmény (lehet negatív)
+  const workResultOptMo = Math.round(hourResultOpt * (benchManopera/12)/tarif); // havi munka-eredmény a 6,5-ös célnál
+  return {P,PE,F,units,perDay,actualTotalH,inconsistent,tooLow,incoherent,verifyReason,svcTurnAn,expert,orePierdute,orePierduteAn,oreBazaLuna,monthlyProd,util,X,Z,Xan,Zan,emptyLifts,realCtrlLift,capLoss,capLossAn,
+    tarifGap,priceLoss,priceLossAn,wageCostPerHour,
+    partsPctNow,partsRonHour,partsIncomeMo,partsLoss,partsLossAn,partsRecov,partsRecovAn,
+    wageHourNow,wageHourOpt,opcPctNow,opcRonHour,hourResult,hourResultOpt,workResultMo,workResultOptMo,
+    benchManopera,actualManopera,fillMano,benchCifra:achievCifra,actualCifraSvc,fillCifra,venitPerPost,utilPost};
+}
+function score(){
+  let s=0;
+  s += [0,2,3,3][answers.q1 ?? 0];
+  s += [0,0,2,3][answers.q2 ?? 0];
+  s += [2,2,1,0][answers.q3 ?? 0];
+  if(answers.q4!==null) s += 1;
+  const tier = s>=7 ? "A" : s>=4 ? "B" : "C";
+  return {s,tier};
+}
+/* ===== VEVŐPROFIL — apró jelek (q3 érettség + q4 fő fájdalom) billentik =====
+   + = optimista (nyereség-nyelv) · − = pesszimista (fájdalom-nyelv) · döntetlen → fájdalom (default).
+   Ugyanaz a szám, két ajtó. A provizórikus profil átmegy a payloadba → auditon megerősítve. */
+const Q3_TILT=[-1,0,0,1];   // [din cap/deloc, Excel, contabil, software]
+const Q4_TILT=[-1,1,-1,-1,-1]; // [haos, nu văd profitul→build, facturi, nu știu bani, rechemare→pain]
+function buyerProfile(){
+  let s=0;
+  if(answers.q3!==null) s += Q3_TILT[answers.q3] ?? 0;
+  if(answers.q4!==null) s += Q4_TILT[answers.q4] ?? 0;
+  const profile = s>0 ? "optimist" : "pessimist";   // s<=0 → fájdalom-default
+  const confidence = Math.abs(s)>=2 ? "clear" : "lean";
+  return {profile, tilt:s, confidence};
+}
+/* q4 (fő diagnózis) × profil (ajtó) — szerelő-nyelven, {x} = éves szám.
+   pain = pesszimista (szivárgás) · gain = optimista (benne van a gépben). */
+const DIAG_DOOR = {
+  0:{ /* Ore pierdute / haos — a szerelő nem tudja a napját */
+    pain:{ ro:"Ziua nu o conduce planul, ci cum vine — din căutat scule și mașini oprite se scurg ~{x} RON/an. Auditul live arată unde se blochează munca.",
+           hu:"A napot nem a terv vezeti, hanem ahogy jön — a sok keresgélésből és állásból folyik el ~{x} RON/év. Az élő audit megmutatja, hol áll meg a munka." },
+    gain:{ ro:"Dacă mecanicul primește dimineața toată ziua, din același om iese cu 1,5 ore mai mult — cei ~{x} RON/an sunt deja în atelier. Auditul live arată cum.",
+           hu:"Ha a szerelő reggel megkapja az egész napot, ugyanabból az emberből másfél órával több jön ki — a ~{x} RON/év már bent van. Az élő audit megmutatja, hogyan." } },
+  1:{ /* Nu văd profitul real — műszerfal nélkül vezet */
+    pain:{ ro:"Conduci fără bord în față — ce nu vezi din producție înseamnă ~{x} RON/an care rămân de neatins. Auditul live îți pune bordul în față.",
+           hu:"Vezetsz, de nincs műszerfal előtted — amit nem látsz a termelésből, az ~{x} RON/év, ami megfoghatatlan marad. Az élő audit a műszerfalat teszi eléd." },
+    gain:{ ro:"Pune-ți bordul în față și fiecare decizie scoate mai mult din aceeași echipă — ~{x} RON/an deja în atelier. Auditul live îți arată cifrele.",
+           hu:"Tegyél műszerfalat elé, és minden döntés többet hoz ugyanabból a csapatból — ~{x} RON/év, ami már a műhelyben van. Az élő audit megmutatja a számokat." } },
+  2:{ /* Facturi furnizori aglomerate — beszerzési tűzoltás */
+    pain:{ ro:"Piesa vine în ultima clipă, mașina stă pe lift și așteaptă — graba asta fură ~{x} RON/an în ore de producție. Auditul live arată unde.",
+           hu:"Az alkatrész az utolsó percben jön, az autó áll a hídon és vár — ez a kapkodás ~{x} RON/év termelési órát lop. Az élő audit megmutatja, hol." },
+    gain:{ ro:"Dacă vezi lucrările de săptămâna viitoare, piesa e pe raft când vine mașina — ~{x} RON/an care nu mai stau pe lift. Auditul live arată cum.",
+           hu:"Ha előre látod a jövő heti melót, az alkatrész a polcon van, mire az autó beáll — ~{x} RON/év, ami nincs többé állásban. Az élő audit megmutatja, hogyan." } },
+  3:{ /* Nu știu pe ce se duc banii — a pénz láthatatlanul elfolyik */
+    pain:{ ro:"Banii pleacă pe unde nu se vede — ~{x} RON/an se duc fără să-i prinzi. Auditul live arată exact unde.",
+           hu:"A pénz ott folyik el, ahol nem látszik — ~{x} RON/év úgy megy el, hogy nem fogod meg. Az élő audit pontosan megmutatja, hol." },
+    gain:{ ro:"Fă-i vizibili și-i prinzi — ~{x} RON/an deja în atelier, doar că nu-i vezi încă. Auditul live îi scoate la lumină.",
+           hu:"Tedd láthatóvá, és megfogod — ~{x} RON/év, ami már a műhelyben van, csak még nem látod. Az élő audit a fénybe teszi." } },
+  4:{ /* Clienții dispar după reparație — rechemare: az üres poszt OKA (MASTER 1.2) */
+    pain:{ ro:"Clientul reparat dispare și nu-l chemi înapoi la timp — mașinile care ar fi trebuit să revină se fac în altă parte, ~{x} RON/an. Postul gol e simptomul, clientul nechemat e cauza. Auditul live arată câte mașini pierzi așa.",
+           hu:"A megjavított ügyfél eltűnik, és nem hívod vissza időben — a kocsik, amiknek vissza kellett volna jönniük, máshol készülnek el, ~{x} RON/év. Az üres poszt a tünet, a vissza nem hívott ügyfél az ok. Az élő audit megmutatja, hány kocsit veszítesz így." },
+    gain:{ ro:"Cheamă clientul la timp și mașina revine la tine, nu la concurență — ~{x} RON/an sunt lucrări deja ale tale, doar că pleacă tăcut. Auditul live arată cum le ții.",
+           hu:"Hívd vissza időben, és a kocsi hozzád jön vissza, nem a konkurenciához — ~{x} RON/év már a te munkád, csak csendben elmegy. Az élő audit megmutatja, hogyan tartod meg." } }
+};
+function profileMsg(c){
+  if(!c || c.inconsistent || c.dataUnknown) return "";
+  const bp=buyerProfile(), ro=lang==="ro", xan=fmt(c.Xan);
+  const door = bp.profile==="optimist" ? "gain" : "pain";
+  const D = DIAG_DOOR[answers.q4];
+  if(D) return D[door][ro?"ro":"hu"].replace("{x}", xan);
+  /* fallback — ha q4 még nincs: általános profil-mondat */
+  if(door==="gain") return ro
+    ? `Cei ~${xan} RON/an de mai sus nu sunt o pierdere definitivă — e potențial deja prezent în atelier. Auditul live arată cum îl scoți.`
+    : `A fenti ~${xan} RON/év nem végleges veszteség — ez a műhelyedben már bent lévő potenciál. Az élő audit megmutatja, hogyan hozod ki.`;
+  return ro
+    ? `Cei ~${xan} RON/an de mai sus nu înseamnă lipsă de clienți — e lipsă de sistem care îi scurge tăcut. Auditul live arată exact de unde.`
+    : `A fenti ~${xan} RON/év nem ügyfélhiány — rendszerhiány, ami csendben visz el. Az élő audit megmutatja, pontosan honnan szivárog.`;
+}
+/* variábilis óra-gazdaságtan indikátor — a termelés-veszteség valós hatása az óra-eredményre (manoperából, alkatrész külön) */
+function profitLine(c){
+  if(!c || c.inconsistent || c.dataUnknown) return "";
+  const ro=lang==="ro";
+  const lab = ro ? "Rezultat / oră lucrată" : "Eredmény / munkaóra";
+  const neg = c.hourResult < 0;
+  const col = neg ? 'var(--loss)' : (c.hourResult >= c.hourResultOpt*0.8 ? 'var(--recover)' : 'var(--warn)');
+  const tail = neg
+    ? (ro ? `la 6,5 ore: +${fmt(c.hourResultOpt)} — subproducția face munca pe pierdere`
+          : `6,5 óránál: +${fmt(c.hourResultOpt)} — az alultermelés veszteségbe fordítja a munkát`)
+    : (ro ? `la 6,5 ore țintă: +${fmt(c.hourResultOpt)} RON` : `6,5 ó cél: +${fmt(c.hourResultOpt)} RON`);
+  return `${lab}: <b style="color:${col}">${c.hourResult>=0?'+':''}${fmt(c.hourResult)} RON</b> <span class="tgt">(${tail})</span>`;
+}
+/* ===== KEMÉNY KAPUK — belépő az auditra (megfelelő = mindkettő teljesül) ===== */
+const MIN_PRODUCTIVE  = 4;          // min. termelő ember
+const MIN_TURNOVER_AN = 1500000;    // min. ÉVES forgalom (RON)
+function hardGate(){
+  const ppl = people || 0;
+  const ta  = cifraUnknown ? null : (cifraAnuala || 0);
+  if(ppl < MIN_PRODUCTIVE) return {pass:false, reason:"too_small"};        // < 4 termelő
+  if(ta === null)          return {pass:false, reason:"turnover_unknown"}; // nincs forgalmi adat → verificare
+  if(ta < MIN_TURNOVER_AN) return {pass:false, reason:"below_turnover"};   // < 1,5M RON/év
+  return {pass:true, reason:"ok"};
+}
+
+const fmt = n => n.toLocaleString("ro-RO");
+const fmtOpt = v => v.toLocaleString("ro-RO",{minimumFractionDigits:1,maximumFractionDigits:1});
+function ctaCopy(t, tier, q3, q4){
+  const ro = lang==="ro";
+  const h1map = ro ? [
+    "Cifrele din bilanț îți arată ce a rămas. Nu îți arată ce s-a pierdut pe drum.",
+    "Un Excel nu e un sistem de producție.",
+    "Datele contabile îți arată realitatea. Auditul îți arată potențialul.",
+    "Ai un soft. Dar știi ce produce fiecare post azi?"
+  ] : [
+    "A mérleg számai megmutatják mi maradt. Azt nem mutatják, mi veszett el közben.",
+    "Egy Excel nem termelésirányítási rendszer.",
+    "A könyvelési adatok a valóságot mutatják. Az audit a potenciált mutatja.",
+    "Van szoftvered. De tudod, mit termel ma minden posztod?"
+  ];
+  const pmap = ro ? [
+    "Orele pierdute zilnic nu apar în niciun raport. Auditul le scoate la suprafață.",
+    "Profitul real se vede doar când știi câte ore ai facturat față de câte ai putut.",
+    "Furnizorii aglomerează pentru că nu există previziune. Asta se rezolvă cu sistem.",
+    "Banii pleacă pe unde nu se vede. Auditul îți arată exact unde."
+  ] : [
+    "A naponta elveszett órák semmilyen riportban nem szerepelnek. Az audit felszínre hozza őket.",
+    "A valós profitot csak akkor látod, ha tudod hány órát számláztak ki a lehetségeshez képest.",
+    "A torlódó számlák oka: nincs előrejelzés. Rendszerrel megoldható.",
+    "A pénz ott folyik el, ahol nem látszik. Az audit pontosan megmutatja hol."
+  ];
+  /* ===== személyre szabott zárás: PROFIL × CIFRA × CEA MAI MARE PROBLEMĂ (q4) ===== */
+  const c=compute(), bp=buyerProfile();
+  const hasNum = c && !c.inconsistent && !c.dataUnknown;
+  const caStr  = (!cifraUnknown && cifraAnuala) ? fmt(cifraAnuala) : null;
+  const xanStr = hasNum ? fmt(c.Xan) : null;
+  const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+  /* q4 (cea mai mare problemă) rövid címke, profil szerint hangolva */
+  const probTag = ro ? [
+    bp.profile==="optimist" ? "orele care se pot recâștiga din haos" : "orele care se pierd zilnic în haos",
+    "profitul real pe care încă nu-l vezi",
+    "aprovizionarea care fură ore de producție",
+    "banii care pleacă pe unde nu se vede"
+  ] : [
+    bp.profile==="optimist" ? "a káoszból visszanyerhető órák" : "a káoszban naponta elvesző órák",
+    "a valós profit, amit még nem látsz",
+    "a beszerzés, ami termelési órát lop",
+    "a pénz, ami láthatatlanul elfolyik"
+  ];
+  const tag = probTag[q4??0];
+  const urg = ro
+    ? {A:"Hai să-l vedem live, în 48 de ore — pe service-ul tău.", B:"Cere auditul — în 48 de ore știi cifra exactă.", C:"Primul pas e gratuit: trimiți datele, primești raportul real."}
+    : {A:"Nézzük meg élőben, 48 órán belül — a saját szervizeden.", B:"Kérj auditot — 48 órán belül tudod a pontos számot.", C:"Az első lépés ingyenes: elküldöd az adatokat, kapsz egy valós riportot."};
+  let close;
+  if(bp.profile==="optimist"){
+    close = (caStr && xanStr)
+      ? (ro ? `La o cifră de ~${caStr} RON/an, ${tag} e potențial real — ~${xanStr} RON deja prezenți în atelier. ${urg[tier]}`
+            : `~${caStr} RON/év forgalomnál ${tag} valódi potenciál — ~${xanStr} RON már bent van a műhelyben. ${urg[tier]}`)
+      : (ro ? `${cap(tag)} — potențial care iese la audit. ${urg[tier]}`
+            : `${cap(tag)} — ez a potenciál az auditon jön ki. ${urg[tier]}`);
+  } else {
+    close = (caStr && xanStr)
+      ? (ro ? `La o cifră de ~${caStr} RON/an, ${tag} înseamnă ~${xanStr} RON pierduți — nu din lipsă de clienți, ci de sistem. ${urg[tier]}`
+            : `~${caStr} RON/év forgalomnál ${tag} ~${xanStr} RON veszteséget jelent — nem ügyfélhiányból, hanem rendszerhiányból. ${urg[tier]}`)
+      : (ro ? `${cap(tag)} — pierdere tăcută, fără sistem. ${urg[tier]}`
+            : `${cap(tag)} — csendes veszteség, rendszer nélkül. ${urg[tier]}`);
+  }
+  return {h1:h1map[q3??0], p:pmap[q4??0], close};
+}
+const card = document.getElementById("card");
+const prog = document.getElementById("prog");
+const toastEl = document.getElementById("toast");
+
+function isQuestion(key){ return ["q1","q2","q3","q4"].includes(key); }
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.lang===l));
+  document.documentElement.lang=l;
+  document.getElementById("adminSummary").textContent=T[l].adm_open;
+  render();
+}
+function toast(msg){
+  toastEl.textContent=msg; toastEl.classList.add("show");
+  clearTimeout(toast._t); toast._t=setTimeout(()=>toastEl.classList.remove("show"),3200);
+}
+function countUp(el, to){
+  const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
+  if(reduce){ el.textContent=fmt(to)+" RON"; return; }
+  const dur=900, t0=performance.now();
+  function tick(t){
+    const k=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-k,3);
+    el.textContent=fmt(Math.round(to*e))+" RON";
+    if(k<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+function gaugeSVG(perDay){
+  const MIN=3, MAX=8;                          // óra/nap/poszt skála
+  const pct=Math.max(0,Math.min(1,(perDay-MIN)/(MAX-MIN)));
+  const t65=(6.5-MIN)/(MAX-MIN), t72=(7.2-MIN)/(MAX-MIN);  // piros<6,5 · sárga6,5–7,2 · zöld7,2+
+  const a=Math.PI*(1-pct);
+  const cx=165,cy=150,r=120;
+  const nx=cx+Math.cos(a)*r, ny=cy-Math.sin(a)*r;
+  const arc=(t0,t1,col)=>{
+    const A0=Math.PI*(1-t0), A1=Math.PI*(1-t1);
+    const x0=cx+Math.cos(A0)*r, y0=cy-Math.sin(A0)*r;
+    const x1=cx+Math.cos(A1)*r, y1=cy-Math.sin(A1)*r;
+    return '<path d="M'+x0+' '+y0+' A'+r+' '+r+' 0 0 1 '+x1+' '+y1+'" stroke="'+col+'" stroke-width="12" fill="none" stroke-linecap="round"/>';
+  };
+  return '<svg class="gauge" viewBox="0 0 330 175" role="img" aria-label="ore/zi">'
+    + arc(0,t65,'var(--loss)') + arc(t65,t72,'var(--warn)') + arc(t72,1,'var(--recover)')
+    + '<g font-family="JetBrains Mono" font-size="10" fill="var(--faint)"><text x="26" y="168">3 h</text><text x="278" y="168">8 h</text></g>'
+    + '<line x1="'+cx+'" y1="'+cy+'" x2="'+nx+'" y2="'+ny+'" stroke="var(--text)" stroke-width="3" stroke-linecap="round" style="transition:all .9s cubic-bezier(.2,.9,.2,1)"/>'
+    + '<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="var(--text)"/></svg>';
+}
+
+/* 4 valós lever — ember · poszt · forgalom · manoperă */
+function leversHTML(c){
+  const t=T[lang];
+  return `<div class="sliders">
+    <label class="sl"><span class="sl-top">${t.lv_turn} <b id="manoVal">${fmt(c.F)} ${t.lei}</b></span>
+      <input type="range" id="manoSlider" min="10000" max="250000" step="5000" value="${c.F}" aria-label="${t.lv_turn}"></label>
+  </div>`;
+}
+/* STANDARD / kontroll panel — az optimalizáló pontok (6,5-ös célállapot arányszámai), alapból csukva, ajánlott értékekkel, profi által ±-állítható */
+function stdPanelHTML(){
+  const t=T[lang];
+  return `<details class="stdpanel">
+    <summary>⚙️ ${t.std_t} <span class="std-hint">${t.std_hint}</span></summary>
+    <div class="sliders" style="margin-top:12px">
+      <label class="sl"><span class="sl-top">${t.std_target} <b id="stdTargetV">${TARGET.toFixed(1)} ${t.std_h}</b></span>
+        <input type="range" id="stdTarget" min="5" max="7.5" step="0.1" value="${TARGET}" aria-label="${t.std_target}"></label>
+      <label class="sl"><span class="sl-top">${t.std_days} <b id="stdZileV">${ZILE_AN}</b></span>
+        <input type="range" id="stdZile" min="200" max="250" step="1" value="${ZILE_AN}" aria-label="${t.std_days}"></label>
+      <label class="sl"><span class="sl-top">${t.std_opcbase} <b id="stdOpcBaseV">${Math.round(OPC_BASE*100)}%</b></span>
+        <input type="range" id="stdOpcBase" min="25" max="45" step="1" value="${Math.round(OPC_BASE*100)}" aria-label="${t.std_opcbase}"></label>
+      <label class="sl"><span class="sl-top">${t.std_opcslope} <b id="stdOpcSlopeV">${(OPC_SLOPE*100).toFixed(1)} ${t.std_pp}</b></span>
+        <input type="range" id="stdOpcSlope" min="0" max="6" step="0.5" value="${(OPC_SLOPE*100).toFixed(1)}" aria-label="${t.std_opcslope}"></label>
+      <label class="sl"><span class="sl-top">${t.std_partsbase} <b id="stdPartsBaseV">${Math.round(PARTS_BASE*100)}%</b></span>
+        <input type="range" id="stdPartsBase" min="10" max="35" step="1" value="${Math.round(PARTS_BASE*100)}" aria-label="${t.std_partsbase}"></label>
+      <label class="sl"><span class="sl-top">${t.std_partsslope} <b id="stdPartsSlopeV">${(PARTS_SLOPE*100).toFixed(1)} ${t.std_pp}</b></span>
+        <input type="range" id="stdPartsSlope" min="0" max="5" step="0.5" value="${(PARTS_SLOPE*100).toFixed(1)}" aria-label="${t.std_partsslope}"></label>
+    </div>
+    <p class="note" style="margin-top:8px">${t.std_law} <b>×${EMPLOYER_MULT.toFixed(3)}</b> (CAS25+CASS10+imp10 → net ${(NET_RATIO*100).toFixed(1)}% + CAM ${(TAX_CAM*100).toFixed(2)}%)</p>
+  </details>`;
+}
+function setT(id,v){ const e=document.getElementById(id); if(e) e.textContent=v; }
+
+function render(){
+  const t=T[lang], key=STEPS[step];
+  prog.style.width = (step/(STEPS.length-1))*100 + "%";
+  let html="";
+
+  if(key==="s0"){
+    html=`<div class="s0hook">${t.s0_hook}</div>
+      <div class="eyebrow">${t.s0_eye}</div><h1>${t.s0_h}</h1>
+      <p class="sub">${t.s0_sub}</p>
+      <p class="assume" style="margin-top:6px">${t.s0_note}</p>
+      <div class="grow"></div>
+      <div class="nav"><button class="btn primary" data-act="next">${t.s0_btn}</button></div>
+      <p class="assume" style="text-align:center;margin-top:12px;opacity:.85">${t.s0_step}</p>`;
+  }
+  else if(key==="s1"){
+    html=`<div class="eyebrow">${t.s1_eye}</div><h1>${t.s1_h}</h1>
+      <div class="vs">
+        <div class="vs-col"><div class="vs-lab">${t.vs_paper_l}</div><div class="vs-desc">${t.vs_paper_d}</div></div>
+        <div class="vs-sign">≠</div>
+        <div class="vs-col vs-real"><div class="vs-lab">${t.vs_real_l}</div><div class="vs-desc">${t.vs_real_d}</div></div>
+      </div>
+      <p class="sub">${t.s1_p}</p>
+      <div class="timeline"><div style="font-family:'Saira';font-size:.8rem;color:var(--muted);margin-bottom:12px">${t.s1_tl_title}</div>
+        <div class="tl-row"><span class="tl-day">8 ${lang==="ro"?"h":"ó"}</span><span class="tl-track tl-in"><i style="width:100%;background:var(--muted)"></i></span><span style="color:var(--muted)">${t.tl_cap}</span></div>
+        <div class="tl-row"><span class="tl-day">6,5 ${lang==="ro"?"h":"ó"}</span><span class="tl-track tl-in"><i style="width:81%;background:var(--recover)"></i></span><span style="color:var(--recover)">${t.tl_target}</span></div>
+        <div class="tl-row"><span class="tl-day">1,5 ${lang==="ro"?"h":"ó"}</span><span class="tl-track tl-in"><i style="width:19%;background:var(--loss)"></i></span><span style="color:var(--loss)">${t.tl_block}</span></div>
+      </div>
+      <p class="assume" style="margin-top:-4px">${t.s1_65note}</p>
+      <div class="who"><div class="ava">FS</div><div><div class="n">${t.who_n}</div><div class="r">${t.who_r}</div></div></div>
+      <p class="sub" style="font-style:italic">${t.s1_who}</p>
+      <div class="s1close">${t.s1_close}</div>
+      <div class="grow"></div>${navHTML()}`;
+  }
+  else if(key==="s2"){
+    html=`<div class="eyebrow">${t.s2_eye}</div><h1>${t.s2_h}</h1>
+      <div class="opts" style="margin:8px 0 4px">
+        <div class="opt" style="cursor:default;align-items:flex-start"><div><div style="font-weight:700">⏱ ${t.p1_t}</div><div style="font-size:.85rem;color:var(--muted);margin-top:3px">${t.p1_d}</div></div></div>
+        <div class="opt" style="cursor:default;align-items:flex-start"><div><div style="font-weight:700">🔗 ${t.p2_t}</div><div style="font-size:.85rem;color:var(--muted);margin-top:3px">${t.p2_d}</div></div></div>
+        <div class="opt" style="cursor:default;align-items:flex-start"><div><div style="font-weight:700">🧾 ${t.p3_t}</div><div style="font-size:.85rem;color:var(--muted);margin-top:3px">${t.p3_d}</div></div></div>
+      </div>
+      <div class="slogan">${t.slogan}</div><div class="grow"></div>${navHTML()}`;
+  }
+  else if(key==="q1"){
+    const units=Math.min(people,posts);
+    html=`<div class="eyebrow">${t.q} 1 ${t.of} 4</div><h1 style="font-size:clamp(1.3rem,5vw,1.7rem)">${t.q1}</h1>
+      <div class="sliders" style="margin-top:16px">
+        <label class="sl"><span class="sl-top">${t.lv_posts} <b id="q1posts">${posts}</b></span>
+          <input type="range" id="q1postsS" min="0" max="1000" step="1" value="${nlPos(posts)}" aria-label="${t.lv_posts}"></label>
+        <label class="sl"><span class="sl-top">${t.q1_people} <b id="q1people">${people}</b></span>
+          <input type="range" id="q1peopleS" min="0" max="1000" step="1" value="${nlPos(people)}" aria-label="${t.q1_people}"></label>
+        <label class="sl"><span class="sl-top">${t.q1_sal} <b id="q1sal">${fmt(salNet)} ${t.lei}</b></span>
+          <input type="range" id="q1salS" min="2000" max="15000" step="100" value="${salNet}" aria-label="${t.q1_sal}"></label>
+      </div>
+      <div class="bottleneck">
+        <div>${t.q1_bottle} <b id="q1bottle" style="color:var(--loss)">${units}</b> ${t.q1_unit}</div>
+        <div class="pot-row">${t.q1_pot}: <b style="color:var(--warn)">6,5</b> ${t.h_ora} × <b id="q1u">${units}</b> × <b>${ZILE_AN}</b> ${t.zile} = <b id="q1pot" style="color:var(--warn)">${fmt(TARGET*units*ZILE_AN)}</b> ${t.h_ora}/${t.an} <span class="tgt">${t.pot_healthy}</span></div>
+        <div class="pot-row">+ <b style="color:var(--recover)">1,5</b> ${t.h_ora} × <b id="q1ut">${units}</b> × <b>${ZILE_AN}</b> = <b id="q1potT" style="color:var(--recover)">${fmt((POTENTIAL-TARGET)*units*ZILE_AN)}</b> ${t.h_ora}/${t.an} <span class="tgt">${t.pot_turbo}</span></div>
+        <div class="pot-row">${t.q1_sal_hint}: <b id="q1bench" style="color:var(--recover)">${salFloor().breakeven}</b> ${t.lei}/${t.h_ora}</div>
+      </div>
+      <div class="grow"></div>${navHTML()}`;
+  }
+  else if(key==="q2"){
+    const mano=Math.round(laborPct*100), pie=100-mano, alte=Math.round(altePct*100), netService=cifraUnknown?0:Math.round(cifraAnuala*(1-altePct));
+    html=`<div class="eyebrow">${t.q} 2 ${t.of} 4</div><h1 style="font-size:clamp(1.3rem,5vw,1.7rem)">${t.q2}</h1>
+      <div class="sliders" style="margin-top:16px">
+        <label class="sl"><span class="sl-top">${t.q2_lab} <b id="q2val"${cifraUnknown?' style="color:var(--faint)"':''}>${cifraUnknown?"—":fmt(cifraAnuala)+" "+t.lei}</b></span>
+          <input type="range" id="q2S" min="0" max="1000" step="1" value="${caPos(cifraAnuala)}"${cifraUnknown?" disabled":""} aria-label="${t.q2_lab}"></label>
+      </div>
+      <div class="ca-extra"${cifraUnknown?' style="opacity:.4;pointer-events:none"':''}>
+        <input type="number" id="q2num" min="1" max="25000000" step="1000" value="${cifraAnuala}" placeholder="ex. 3.300.000" aria-label="${t.q2_lab}">
+        <div class="ca-hint">${t.q2_perlu}: <b id="q2perlu">${fmt(Math.round(cifraAnuala/12))} ${t.lei}</b> · ${t.q2_verify} <a href="https://www.listafirme.ro" target="_blank" rel="noopener">listafirme.ro</a> · <a href="https://www.risco.ro" target="_blank" rel="noopener">risco.ro</a></div>
+      </div>
+      <button class="opt" data-q2unknown style="margin-top:8px;${cifraUnknown?"border-color:var(--loss);background:rgba(255,90,44,.08)":""}">
+        <span>${t.q2_unknown}</span><span class="tick"${cifraUnknown?' style="border-color:var(--loss);background:var(--loss);box-shadow:inset 0 0 0 3px var(--panel-2)"':''}></span></button>
+      <div class="sliders" style="margin-top:16px">
+        <label class="sl"><span class="sl-top">${t.sl_tarif} <b id="q2tarifval" style="color:${tarifCol(tarif)}">${fmt(tarif)} ${t.lei}</b></span>
+          <input type="range" id="q2tarifS" class="track-zone" min="100" max="600" step="5" value="${tarif}" aria-label="${t.sl_tarif}"></label>
+      </div>
+      <div class="sliders" style="margin-top:16px">
+        <label class="sl"><span class="sl-top">${t.q2_alte} <b id="q2alteval">${alte}%</b></span>
+          <input type="range" id="q2alteS" min="0" max="80" step="5" value="${alte}" aria-label="${t.q2_alte}"></label>
+      </div>
+      <div class="ca-hint" style="margin-top:7px">${t.q2_alte_hint} <b id="q2net">${fmt(netService)} ${t.lei}/${t.an}</b></div>
+      <div class="sliders" style="margin-top:16px">
+        <label class="sl"><span class="sl-top">${t.q2_split} <b id="q2split"${splitUnknown?' style="color:var(--faint)"':''}>${t.piese} ${pie}% · ${t.mano_w} ${mano}%</b></span>
+          <input type="range" id="q2splitS" min="20" max="70" step="5" value="${mano}"${splitUnknown?" disabled":""} aria-label="${t.q2_split}"></label>
+      </div>
+      <button class="opt" data-splitunknown style="margin-top:8px;${splitUnknown?"border-color:var(--loss);background:rgba(255,90,44,.08)":""}">
+        <span>${t.q2_split_unknown}</span><span class="tick"${splitUnknown?' style="border-color:var(--loss);background:var(--loss);box-shadow:inset 0 0 0 3px var(--panel-2)"':''}></span></button>
+      <div class="grow"></div>${navHTML()}`;
+  }
+  else if(isQuestion(key)){
+    const qn=["q1","q2","q3","q4"].indexOf(key)+1;
+    const titles={q1:t.q1,q2:t.q2,q3:t.q3,q4:t.q4};
+    const opts={q1:t.q1o,q2:Q2,q3:t.q3o,q4:t.q4o}[key];
+    html=`<div class="eyebrow">${t.q} ${qn} ${t.of} 4</div><h1 style="font-size:clamp(1.3rem,5vw,1.7rem)">${titles[key]}</h1>
+      <div class="opts">${opts.map((o,i)=>`
+        <button class="opt" role="button" aria-pressed="${answers[key]===i}" data-pick="${i}">
+          <span>${o}</span><span class="tick"></span></button>`).join("")}</div>
+      <div class="grow"></div>${navHTML()}`;
+  }
+  else if(key==="mirror"){
+    const c0=compute();
+    if(!c0){
+      html=`<div class="eyebrow">${t.mir_eye}</div><p class="sub">${t.mir_need}</p><div class="grow"></div>${navHTML()}`;
+    } else if(c0.dataUnknown){
+      html=`<div class="eyebrow">${t.mir_eye}</div>
+        <div class="verify"><div class="vh">⚠ ${t.unknown_h}</div>
+          <p class="sub" style="margin:0">${t.unknown_p}</p></div>
+        <div class="grow"></div>${navHTML()}`;
+    } else {
+      const ver=c0.verifyReason, pc=utilCol(c0.perDay);
+      const vH = ver==='low'?t.v_low_h : ver==='incoh'?t.v_incoh_h : t.v_h;
+      const vBody = ver==='low'?t.v_low_p : ver==='incoh'?t.v_incoh_p
+                  : `${t.v_p1} <b id="vPerDay" style="color:var(--warn)">${c0.perDay.toFixed(1)}</b> ${t.v_p2}`;
+      html=`<div class="eyebrow">${t.mir_eye}</div>
+      <div id="mirrorVerify" style="display:${ver?'block':'none'}">
+        <div class="verify"><div class="vh">⚠ ${vH}</div>
+          <p class="sub" style="margin:0">${vBody}</p></div>
+      </div>
+      <div id="mirrorNormal" style="display:${ver?'none':'block'}">
+        ${!finTouched?`<div id="provBanner" class="verify" style="border-color:var(--warn);margin-bottom:12px"><div class="vh">⚙ ${t.prov_h}</div><p class="sub" style="margin:0">${t.prov_p}</p></div>`:''}
+        <div id="gaugeWrap">${gaugeSVG(c0.perDay)}</div>
+        <div class="prodline">${t.mir_perday}: <b id="perDay" style="color:${pc}">${c0.perDay.toFixed(1)} ${t.h_ora}/${t.post}</b><span class="exp-pill" id="expertBadge" style="display:${c0.expert?'inline-block':'none'}">${t.expert}</span> · <span class="tgt">${t.tgt_green}</span></div>
+        <div class="prodline" id="profitLine">${profitLine(c0)}</div>
+        <div class="mirror-split">
+          <div class="mirror-left" id="headline" style="${!finTouched?'opacity:.6':''}">
+            <div class="readout">
+              <div class="x" id="xnum">0 RON</div>
+              <div class="xlab">${t.mir_xlab}</div>
+              <div class="xsub" id="xsub">${fmt(c0.X)} ${t.lei}/${t.luna} × 12</div>
+              <div class="prodref" id="prodref">${t.mir_prod_ref.replace("{p}", fmt(c0.F*12))}</div>
+            </div>
+            <div class="rec"><span class="zl">${t.mir_zl}</span><span class="z" id="znum">0</span></div>
+            <div class="recsub" id="zsub">${fmt(c0.Zan)} ${t.lei}/${t.an}</div>
+            <div class="partsrow" id="partsRow">+ <b id="partsLossNum" style="color:var(--loss)">${fmt(c0.partsLossAn)}</b> ${t.lei}/${t.an} <span class="pl-tag">${t.parts_lab}</span> · <span style="color:var(--recover)">${t.recoverable_short} <b id="partsRecovNum">${fmt(c0.partsRecovAn)}</b></span></div>
+          </div>
+          <div class="mirror-right">
+            <div class="meters-h">${t.meters_title}</div>
+            <div class="meter prime">
+              <div class="meter-top"><span class="mn">${t.m_mano} <span class="drv">${t.m_driver}</span></span><span class="mv"><b id="mManoV">${fmt(c0.actualManopera)}</b> → <span id="mManoBench" style="color:var(--recover)">${fmt(c0.benchManopera)}</span></span></div>
+              <div class="meter-track"><i id="mManoBar" style="width:${c0.fillMano}%;background:${fillCol(c0.fillMano)}"></i></div>
+              <div class="meter-pct"><b id="mManoPct" style="color:var(--text)">${c0.fillMano}</b>% ${t.m_acum} · <b id="mManoGap" style="color:var(--recover)">${100-c0.fillMano}</b>% ${t.m_realiz}</div>
+            </div>
+            <div class="meter">
+              <div class="meter-top"><span class="mn">${t.m_cifra}</span><span class="mv"><b id="mCifraV">${fmt(c0.actualCifraSvc)}</b> → <span id="mCifraBench" style="color:var(--recover)">${fmt(c0.benchCifra)}</span></span></div>
+              <div class="meter-track"><i id="mCifraBar" style="width:${c0.fillCifra}%;background:${fillCol(c0.fillCifra)}"></i></div>
+              <div class="meter-pct"><b id="mCifraPct" style="color:var(--text)">${c0.fillCifra}</b>% ${t.m_acum} · <b id="mCifraGap" style="color:var(--recover)">${100-c0.fillCifra}</b>% ${t.m_realiz}</div>
+            </div>
+            <div class="postinc" id="postincBlock" style="display:${c0.emptyLifts>0?'flex':'none'}">
+              <span class="pi-lab">${t.pi_lab}</span>
+              <span class="pi-val">+<b id="piVal">${fmt(c0.venitPerPost)}</b> ${t.lei}/${t.an}</span>
+              <span class="pi-sub" id="piSub">${t.pi_sub.replace("{u}", c0.utilPost)}</span>
+            </div>
+          </div><!-- mirror-right -->
+        </div><!-- mirror-split -->
+        <div class="cta-close" id="profileMsg" style="margin-top:14px;border-left-color:${buyerProfile().profile==='optimist'?'var(--recover)':'var(--loss)'}">${profileMsg(c0)}</div>
+      </div>
+      ${leversHTML(c0)}
+      ${stdPanelHTML()}
+      <p class="assume">${t.assume}</p>
+      <p class="note">${t.mir_note}</p><div class="grow"></div>${navHTML()}`;
+    }
+  }
+  else if(key==="cta"){
+    const cc=compute();
+    let recap="";
+    if(cc){
+      if(cc.verifyReason){
+        recap=`<div class="cta-recap"><div class="cr-lab">${t.cta_rec}</div>
+          <p class="sub" style="margin:0">${t.cta_rec_incon}</p></div>`;
+      } else if(cc.dataUnknown){
+        recap=`<div class="cta-recap"><div class="cr-lab">${t.cta_rec}</div>
+          <p class="sub" style="margin:0">${t.unknown_p}</p></div>`;
+      } else if(!finTouched){
+        recap=`<div class="cta-recap"><div class="cr-lab">${t.cta_rec}</div>
+          <p class="sub" style="margin:0">${t.prov_p}</p></div>`;
+      } else {
+        recap=`<div class="cta-recap"><div class="cr-lab">${t.cta_rec}</div>
+          <div class="readout"><div class="x" style="color:var(--loss)">${fmt(cc.Xan)} RON</div><div class="xlab">${t.mir_xlab}</div>
+            <div class="prodref">${t.mir_prod_ref.replace("{p}", fmt(cc.F*12))}</div></div>
+          <div class="rec"><span class="zl">${t.mir_zl}</span><span class="z">${fmt(cc.Z)} RON</span></div>
+          <div class="recsub">${fmt(cc.Zan)} ${t.lei}/${t.an}</div></div>`;
+      }
+    }
+    const sc=score(), cx=ctaCopy(t, sc.tier, answers.q3, answers.q4);
+    const recoverLabel = t.cta_recover;
+    html=`<div class="eyebrow">${t.cta_eye} · <span class="tier ${sc.tier}">TIER ${sc.tier}</span></div>
+      <h1 style="font-size:clamp(1.2rem,5vw,1.55rem)">${cx.h1}</h1>
+      <p class="sub">${cx.p}</p>
+      ${recap}
+      <div class="cta-close">${cx.close}</div>
+      <div class="grow"></div>
+      <div id="ctaMain">
+        <div class="nav"><button class="btn primary" id="ctaBtn">${recoverLabel}</button></div>
+        <button class="btn ghost cta-sec" data-act="back" style="margin-top:8px">${t.back}</button>
+      </div>
+      <div id="ctaEmail" style="display:none">
+        <p class="sub" style="margin-bottom:8px">${t.cta_email_p}</p>
+        <input type="email" id="ctaEmailInp" placeholder="${t.cta_email_ph}" style="width:100%;padding:11px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:1rem;box-sizing:border-box;margin-bottom:10px">
+        <div class="nav"><button class="btn primary" id="ctaSubmit">${t.cta_email_btn}</button></div>
+        <button class="btn ghost cta-sec" id="ctaCancel" style="margin-top:8px">${t.back}</button>
+      </div>`;
+  }
+  card.innerHTML=html;
+
+  card.querySelectorAll("[data-pick]").forEach(b=>{
+    b.addEventListener("click",()=>{ answers[key]=+b.dataset.pick; render(); });
+  });
+  card.querySelectorAll("[data-act]").forEach(b=>{
+    b.addEventListener("click",()=>{
+      const a=b.dataset.act;
+      if(a==="next") go(1);
+      else if(a==="back") go(-1);
+    });
+  });
+  if(key==="cta"){
+    const btnMain=document.getElementById("ctaBtn"), main=document.getElementById("ctaMain"), emailDiv=document.getElementById("ctaEmail");
+    const inp=document.getElementById("ctaEmailInp"), sub=document.getElementById("ctaSubmit"), can=document.getElementById("ctaCancel");
+    if(btnMain) btnMain.addEventListener("click",()=>{ main.style.display="none"; emailDiv.style.display="block"; inp.focus(); });
+    if(can) can.addEventListener("click",()=>{ emailDiv.style.display="none"; main.style.display="block"; });
+    if(sub) sub.addEventListener("click",()=>{
+      const email=inp.value.trim();
+      if(!email || !email.includes("@")){ inp.style.borderColor="var(--loss)"; inp.focus(); return; }
+      inp.style.borderColor="";
+      leadEmail=email; updateAdmin();
+      emailDiv.innerHTML=`<div style="text-align:center;padding:18px 0"><div style="font-size:2rem">✓</div><p class="sub" style="margin:8px 0 0">${T[lang].cta_email_ok}</p></div>`;
+      toast(T[lang].toast);
+    });
+  }
+
+  if(key==="mirror"){
+    const c=compute();
+    if(c && !c.verifyReason && !c.dataUnknown){
+      const xn=document.getElementById("xnum"), zn=document.getElementById("znum");
+      if(finTouched){
+        requestAnimationFrame(()=>{ if(xn) countUp(xn, c.Xan); if(zn) zn.textContent=fmt(c.Z)+" RON"; });
+      } else {                                   // P1: provizórikus → nincs drámai felszámolás, ≈ jelzéssel statikus
+        if(xn) xn.textContent="≈ "+fmt(c.Xan)+" RON";
+        if(zn) zn.textContent="≈ "+fmt(c.Z)+" RON";
+      }
+    }
+    const ms=document.getElementById("manoSlider");
+    if(ms) ms.addEventListener("input",()=>{ manopera=+ms.value;
+      if(!finTouched){ finTouched=true; render(); }   // első bevételi érintés → élesít (banner el, dim le)
+      else updateMirror(); });
+    /* STANDARD panel — optimalizáló pontok; minden frissítés recalcStd()+updateMirror() */
+    const _std=(id,vid,fn,fmtv)=>{ const e=document.getElementById(id); if(e) e.addEventListener("input",()=>{ fn(+e.value); recalcStd(); setT(vid,fmtv(+e.value)); updateMirror(); }); };
+    _std("stdTarget","stdTargetV",v=>TARGET=v, v=>v.toFixed(1)+" "+T[lang].std_h);
+    _std("stdZile","stdZileV",v=>ZILE_AN=v, v=>String(v));
+    _std("stdOpcBase","stdOpcBaseV",v=>OPC_BASE=v/100, v=>v+"%");
+    _std("stdOpcSlope","stdOpcSlopeV",v=>OPC_SLOPE=v/100, v=>v.toFixed(1)+" "+T[lang].std_pp);
+    _std("stdPartsBase","stdPartsBaseV",v=>PARTS_BASE=v/100, v=>v+"%");
+    _std("stdPartsSlope","stdPartsSlopeV",v=>PARTS_SLOPE=v/100, v=>v.toFixed(1)+" "+T[lang].std_pp);
+  }
+  if(key==="q1"){
+    const setBucket=()=>{ answers.q1 = posts<=2?0:posts<=4?1:posts<=6?2:3; };
+    const refresh=()=>{ const u=Math.min(people,posts); setT("q1bottle",u); setT("q1u",u); setT("q1ut",u); setT("q1pot",fmt(TARGET*u*ZILE_AN)); setT("q1potT",fmt((POTENTIAL-TARGET)*u*ZILE_AN)); setBucket(); updateAdmin(); };
+    const ps=document.getElementById("q1postsS"), pe=document.getElementById("q1peopleS");
+    if(ps) ps.addEventListener("input",()=>{ posts=nlVal(ps.value); setT("q1posts",posts); refresh(); });
+    if(pe) pe.addEventListener("input",()=>{ people=nlVal(pe.value); setT("q1people",people); refresh(); });
+    const sa=document.getElementById("q1salS");
+    if(sa) sa.addEventListener("input",()=>{ salNet=+sa.value; setT("q1sal",fmt(salNet)+" "+T[lang].lei); setT("q1bench",salFloor().breakeven); updateAdmin(); });
+    setBucket();
+  }
+  if(key==="q2"){
+    const setBucket=()=>{ answers.q2 = cifra<50000?0:cifra<150000?1:cifra<300000?2:3; };
+    const s=document.getElementById("q2S"), snum=document.getElementById("q2num");
+    const syncCifra=()=>{ cifra=Math.round(cifraAnuala/12); cifraUnknown=false; finTouched=true;
+      setT("q2val", fmt(cifraAnuala)+" "+t.lei); setT("q2perlu", fmt(cifra)+" "+t.lei);
+      setT("q2net", fmt(Math.round(cifraAnuala*(1-altePct)))+" "+t.lei+"/"+t.an); setBucket(); updateAdmin(); };
+    if(s) s.addEventListener("input",()=>{ cifraAnuala=caVal(s.value); if(snum) snum.value=cifraAnuala; syncCifra(); });
+    if(snum) snum.addEventListener("input",()=>{ const v=parseInt(snum.value,10);
+      if(!isNaN(v)&&v>0){ cifraAnuala=Math.min(CA_MAX,v); if(s) s.value=caPos(cifraAnuala); syncCifra(); } });
+    const u=card.querySelector("[data-q2unknown]");
+    if(u) u.addEventListener("click",()=>{ cifraUnknown=!cifraUnknown; render(); });
+    const ss=document.getElementById("q2splitS");
+    if(ss) ss.addEventListener("input",()=>{ const m=+ss.value; laborPct=m/100; splitUnknown=false; setT("q2split", t.piese+" "+(100-m)+"% · "+t.mano_w+" "+m+"%"); updateAdmin(); });
+    const as=document.getElementById("q2alteS");
+    if(as) as.addEventListener("input",()=>{ altePct=(+as.value)/100; setT("q2alteval", (+as.value)+"%"); setT("q2net", fmt(Math.round(cifraAnuala*(1-altePct)))+" "+t.lei+"/"+t.an); updateAdmin(); });
+    const ts=document.getElementById("q2tarifS");
+    if(ts) ts.addEventListener("input",()=>{ tarif=+ts.value; const tv=document.getElementById("q2tarifval"); if(tv){ tv.textContent=fmt(tarif)+" "+t.lei; tv.style.color=tarifCol(tarif); } updateAdmin(); });
+    const su=card.querySelector("[data-splitunknown]");
+    if(su) su.addEventListener("click",()=>{ splitUnknown=!splitUnknown; if(splitUnknown) laborPct=0.45; render(); });
+    setBucket();
+  }
+  updateAdmin();
+}
+
+function updateMirror(){
+  const c=compute(); if(!c){ render(); return; }
+  if(c.dataUnknown){ render(); return; }
+  const t=T[lang], pc=utilCol(c.perDay);
+  const mn=document.getElementById("mirrorNormal");
+  const wasVerify = mn && mn.style.display==="none";
+  if(c.verifyReason || wasVerify){ render(); return; }   // P2/P3: verify-mód váltás → teljes újrarajzolás a helyes panellel
+  /* leverek */
+  setT("peopleVal", c.PE); setT("postsVal", c.P); setT("manoVal", fmt(c.F)+" "+t.lei);
+  /* normál panel */
+  const gw=document.getElementById("gaugeWrap"); if(gw) gw.innerHTML=gaugeSVG(c.perDay);
+  const pd=document.getElementById("perDay"); if(pd){ pd.textContent=c.perDay.toFixed(1)+" "+t.h_ora+"/"+t.post; pd.style.color=pc; }
+  const eb=document.getElementById("expertBadge"); if(eb) eb.style.display=c.expert?"inline-block":"none";
+  setT("xnum", fmt(c.Xan)+" RON"); setT("znum", fmt(c.Z)+" RON");
+  setT("xsub", fmt(c.X)+" "+t.lei+"/"+t.luna+" × 12"); setT("prodref", t.mir_prod_ref.replace("{p}", fmt(c.F*12)));
+  setT("zsub", fmt(c.Zan)+" "+t.lei+"/"+t.an);
+  setT("partsLossNum", fmt(c.partsLossAn)); setT("partsRecovNum", fmt(c.partsRecovAn));
+  /* 3 mérőóra: kellene vs van */
+  setT("mManoV", fmt(c.actualManopera)); setT("mManoBench", fmt(c.benchManopera)); const mmb=document.getElementById("mManoBar"); if(mmb){ mmb.style.width=c.fillMano+"%"; mmb.style.background=fillCol(c.fillMano); } setT("mManoPct", c.fillMano); setT("mManoGap", 100-c.fillMano);
+  setT("mCifraV", fmt(c.actualCifraSvc)); setT("mCifraBench", fmt(c.benchCifra)); const mcb=document.getElementById("mCifraBar"); if(mcb){ mcb.style.width=c.fillCifra+"%"; mcb.style.background=fillCol(c.fillCifra); } setT("mCifraPct", c.fillCifra); setT("mCifraGap", 100-c.fillCifra);
+  const pib=document.getElementById("postincBlock"); if(pib) pib.style.display=c.emptyLifts>0?"flex":"none";
+  setT("piVal", fmt(c.venitPerPost)); setT("piSub", t.pi_sub.replace("{u}", c.utilPost));
+  const pm=document.getElementById("profileMsg");
+  if(pm){ pm.innerHTML=profileMsg(c); pm.style.borderLeftColor = buyerProfile().profile==="optimist"?"var(--recover)":"var(--loss)"; }
+  const plLine=document.getElementById("profitLine"); if(plLine) plLine.innerHTML=profitLine(c);
+  updateAdmin();
+}
+
+function navHTML(){
+  const t=T[lang], key=STEPS[step];
+  const lock = isQuestion(key) && answers[key]===null;
+  return `<div class="nav">
+    <button class="btn ghost" data-act="back">${t.back}</button>
+    <button class="btn primary" data-act="next" ${lock?"disabled":""}>${t.next}</button>
+  </div>`;
+}
+function go(d){
+  const key=STEPS[step];
+  if(d>0 && isQuestion(key) && answers[key]===null) return;
+  step=Math.max(0,Math.min(STEPS.length-1,step+d));
+  card.scrollIntoView({behavior:"smooth",block:"nearest"});
+  render();
+}
+function updateAdmin(){
+  const c=compute(), cf=(c&&!c.dataUnknown)?c:null, sc=score(), hg=hardGate(), bp=buyerProfile(), sf=salFloor();
+  const lab={
+    q1: answers.q1!==null?T[lang].q1o[answers.q1]:"—",
+    q2: cifraUnknown?"nu știu":(answers.q2!==null?Q2[answers.q2]:"—"),
+    q3: answers.q3!==null?T[lang].q3o[answers.q3]:"—",
+    q4: answers.q4!==null?T[lang].q4o[answers.q4]:"—"
+  };
+  const zona = cf ? (cf.verifyReason?"VERIFICARE" : cf.monthlyProd<125?"ROȘU":cf.monthlyProd<140?"GALBEN":"VERDE") : (c&&c.dataUnknown?"DATE LIPSĂ":"—");
+  const payload={
+    posturi_band:lab.q1, cifra_band:lab.q2, sistem_actual:lab.q3, durere_principala:lab.q4,
+    oameni_productivi:c?c.PE:null, posturi:c?c.P:null, unitati_min:cf?cf.units:null,
+    manopera_lunara:cf?cf.F:null, cifra_afaceri:cifraUnknown?null:cifra, cifra_afaceri_anuala:cifraUnknown?null:cifraAnuala, cifra_necunoscuta:cifraUnknown,
+    structura_piese_pct:Math.round((1-laborPct)*100), structura_manopera_pct:Math.round(laborPct*100), structura_necunoscuta:splitUnknown,
+    alte_venituri_pct:Math.round(altePct*100), cifra_service_net_anual:cifraUnknown?null:Math.round(cifraAnuala*(1-altePct)),
+    tarif_ora:tarif, zile_lucratoare_an:ZILE_AN,
+    salariu_mediu_net:salNet, opc_base_pct:Math.round(OPC_BASE*100), opc_slope_pp:+(OPC_SLOPE*100).toFixed(1), parts_base_pct:Math.round(PARTS_BASE*100), parts_slope_pp:+(PARTS_SLOPE*100).toFixed(1), employer_mult:+EMPLOYER_MULT.toFixed(3), tarif_benchmark:PRICE_FLOOR, tarif_band_hi:PRICE_BAND_HI, tarif_breakeven:sf.breakeven, tarif_sub_benchmark:cf?cf.tarifGap:null, pierdere_pret_luna:cf?cf.priceLoss:null, pierdere_pret_an:cf?cf.priceLossAn:null,
+    pierdere_piese_luna:cf?cf.partsLoss:null, pierdere_piese_an:cf?cf.partsLossAn:null, recuperabil_piese_luna:cf?cf.partsRecov:null, recuperabil_piese_an:cf?cf.partsRecovAn:null,
+    parts_pct_acum:cf?Math.round(cf.partsPctNow*100):null, venit_piese_luna:cf?cf.partsIncomeMo:null,
+    cost_op_pct_acum:cf?Math.round(cf.opcPctNow*100):null, cost_op_ron_ora:cf?cf.opcRonHour:null,
+    salariu_ora_acum:cf?Math.round(cf.wageHourNow):null, salariu_ora_tinta:cf?Math.round(cf.wageHourOpt):null,
+    rezultat_ora_acum:cf?cf.hourResult:null, rezultat_ora_tinta:cf?cf.hourResultOpt:null, rezultat_munca_luna:cf?cf.workResultMo:null,
+    productie_zi_post:cf?+cf.perDay.toFixed(2):null, utilizare_pct:cf?cf.util:null, zona_productie:zona,
+    ore_reale_luna:cf?cf.oreBazaLuna:null, ore_pierdute_luna:cf?cf.orePierdute:null, ore_pierdute_an:cf?cf.orePierduteAn:null,
+    X_productie_pierduta:cf?cf.X:null, Z_recuperabil:cf?cf.Z:null, X_pierdut_anual:cf?cf.Xan:null, Z_recuperabil_anual:cf?cf.Zan:null,
+    emelo_gol_count:cf?cf.emptyLifts:null, real_control_per_emelo:cf?cf.realCtrlLift:null, capacitate_pierduta_an:cf?cf.capLossAn:null, demand_factor:DEMAND_FACTOR,
+    date_inconsistente:cf?cf.inconsistent:null, date_necunoscute:c?!!c.dataUnknown:null, verify_reason:cf?cf.verifyReason:null, provizoriu:!finTouched,
+    fit_score:sc.s, fit_tier:sc.tier, profil_cumparator:bp.profile, profil_inclinatie:bp.tilt, profil_incredere:bp.confidence, wedge:"reality_index", aktualis_kapu:step+1, lead_email:leadEmail||null,
+    megfelelo:hg.pass, motiv_kiszurt:hg.pass?null:hg.reason, decizie:hg.pass?"AUDIT":"FILTRAT",
+    prag_oameni:MIN_PRODUCTIVE, prag_cifra_an:MIN_TURNOVER_AN
+  };
+  document.getElementById("adminBox").innerHTML =
+`<b>Răspunsuri</b>
+  posturi (band): ${lab.q1}
+  cifră (band):   ${lab.q2}
+  urmărire:       ${lab.q3}
+  problemă:       ${lab.q4}
+
+<b>Calcul (model Ferenc v2 — 4 intrări: oameni · posturi · cifră · manoperă)</b>
+  ${cf?`unități = min(${cf.PE} oameni, ${cf.P} posturi) = ${cf.units}`:(c&&c.dataUnknown?"⚠ DATE LIPSĂ — fără cifră/manoperă nu calculăm (nicio valoare implicită)":"— (lipsesc datele)")}
+  ${cf?`ore reale = manoperă ${fmt(cf.F)} ÷ ${fmt(tarif)} = ${fmt(cf.oreBazaLuna)} ore/lună`:""}
+  ${cf?`producție = ${cf.perDay.toFixed(2)} ore/zi/post → utilizare ${cf.util}% → ${zona}`:""}
+  ${cf&&cf.inconsistent?`⚠ ${cf.perDay.toFixed(1)} > 8 ore — fizic imposibil → VERIFICARE LIVE`:cf?`[1] subproducție/an = (6,5 − ${cf.perDay.toFixed(2)}) × ${cf.units} × 230 = ${fmt(cf.orePierduteAn)} ore × ${fmt(tarif)} = Xan ${fmt(cf.Xan)} → recuperabil = gap × 0,49 = Zan ${fmt(cf.Zan)}`:""}
+  ${cf?`[2] emelő gol = max(0, ${cf.P}−${cf.PE}) = ${cf.emptyLifts} × Real Control ${fmt(cf.realCtrlLift)}/an × demand ${DEMAND_FACTOR} = capacitate ${fmt(cf.capLossAn)}/an (separat, NU se adună la [1])`:""}
+  ${cf&&!cf.inconsistent?(cf.priceLoss>0?`[3] subprețare = (${PRICE_FLOOR} prag piață − ${fmt(tarif)}) × ${fmt(cf.oreBazaLuna)} ore/lună × 12 = ${fmt(cf.priceLossAn)} RON/an (separat, NU se adună la [1])`:`[3] tarif ${fmt(tarif)} ≥ ${PRICE_FLOOR} — fără pierdere din preț`):""}
+  ${cf&&!cf.inconsistent?`[4] piese = Xan ${fmt(cf.Xan)} × ${Math.round(PARTS_BASE*100)}% (rată țintă) = ${fmt(cf.partsLossAn)} RON/an (recuperabil ${fmt(cf.partsRecovAn)}) — ramură separată · acum ${Math.round(cf.partsPctNow*100)}%/oră`:""}
+  ${cf&&!cf.inconsistent?`[5] economie/oră (variabilă): manoperă ${fmt(tarif)} − salariu/oră ${fmt(Math.round(cf.wageHourNow))} (fix anual ÷ ${cf.perDay.toFixed(1)}h×${ZILE_AN}) − cost op ${Math.round(cf.opcPctNow*100)}% (${fmt(cf.opcRonHour)}) = rezultat/oră ${cf.hourResult>=0?'+':''}${fmt(cf.hourResult)} RON → la 6,5h țintă: +${fmt(cf.hourResultOpt)} RON (salariu/oră ${fmt(Math.round(cf.wageHourOpt))}, cost op ${Math.round(OPC_BASE*100)}%)`:""}
+  tarif: cost salarial/an ${fmt(Math.round(sf.loadedAn))} = ${fmt(salNet)} net → brut ${fmt(Math.round(salNet/NET_RATIO))} (CAS25+CASS10+imp10) + CAM ${(TAX_CAM*100).toFixed(2)}% × 12 luni ÷ ${fmt(BILLABLE_AN)} ore/an (230×6,5) → cost/oră ${sf.breakeven} RON · bandă piață ${PRICE_FLOOR}–${PRICE_BAND_HI}
+<b>Scoring (Anexa B)</b>  ${sc.s} pct → <span class="tier ${sc.tier}">TIER ${sc.tier}</span>  ${sc.tier==="A"?"(apel live 48h)":sc.tier==="B"?"(pilot + nurturing)":"(drip)"}
+<b>Profil cumpărător</b>  ${bp.profile.toUpperCase()} (înclinație ${bp.tilt>0?"+":""}${bp.tilt}, ${bp.confidence}) → limbaj ${bp.profile==="optimist"?"câștig / creștere":"durere / risc"}
+<b>Poartă dură (≥${MIN_PRODUCTIVE} oameni · ≥${fmt(MIN_TURNOVER_AN)} cifră/an)</b>  ${hg.pass?"✅ MEGFELELŐ → AUDIT":"⛔ KISZŰRT → "+hg.reason}
+
+<b>→ Supabase abm_accounts</b>
+${JSON.stringify(payload,null,2)}`;
+}
+
+document.querySelectorAll(".lang button").forEach(b=>b.addEventListener("click",()=>setLang(b.dataset.lang)));
+document.getElementById("adminSummary").textContent=T.ro.adm_open;
+render();
+</script>
+</body>
+</html>
